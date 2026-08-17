@@ -2,7 +2,7 @@
  * @file Sun.ts
  * @description Ultra-realistic Sun with convective plasma granulation, limb darkening,
  * dynamic magnetic flux loops (solar prominences), coronal mass ejections (CME), and additive corona.
- * Scaled 5x larger than baseline, with 5x higher brightness/emissive intensity.
+ * Scaled down to 0.25x size and 0.25x brightness to represent a distant star.
  */
 import * as THREE from 'three';
 
@@ -78,8 +78,8 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
         }
     `;
 
-    // 1. Core Photosphere (Radius 2.0 * 5.0 = 10.0)
-    const sunGeometry = new THREE.SphereGeometry(10.0, 128, 128);
+    // 1. Core Photosphere (Radius 2.0 * 0.25 = 0.5)
+    const sunGeometry = new THREE.SphereGeometry(0.5, 64, 64);
     const sunMaterial = new THREE.ShaderMaterial({
         uniforms: {
             uTime: { value: 0 },
@@ -115,8 +115,8 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
             ${noiseGLSL}
 
             void main() {
-                // Scale coordinate back to standard noise density
-                vec3 p = (vPosition / 5.0) * 4.0;
+                // Scale coordinate back to standard noise density (multiplied by 4.0, which is / 0.25)
+                vec3 p = (vPosition * 4.0) * 4.0;
                 float t = uTime * 0.15;
                 
                 // Convective solar granules
@@ -125,7 +125,7 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
                 float plasma = smoothstep(-0.2, 0.8, n1 + n2 * 0.5);
 
                 // Magnetic activity flare points
-                float spotNoise = snoise((vPosition / 5.0) * 1.5 + vec3(0.0, t * 0.05, 0.0));
+                float spotNoise = snoise((vPosition * 4.0) * 1.5 + vec3(0.0, t * 0.05, 0.0));
                 float flareMask = smoothstep(0.55, 0.85, spotNoise);
 
                 // Limb Darkening
@@ -134,10 +134,10 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
                 float NdotV = max(dot(normal, viewDir), 0.0);
                 float limb = pow(NdotV, 0.7);
 
-                // Color grading & 2x brightness multiplier on core photosphere
+                // Color grading & 0.25x brightness multiplier on core photosphere
                 vec3 baseColor = mix(uColorDeep, uColorDark, plasma);
                 baseColor = mix(baseColor, uColorMid, smoothstep(0.2, 0.9, plasma));
-                vec3 litColor = mix(baseColor, uColorCore, limb * 0.85 + flareMask * 1.5) * 2.0;
+                vec3 litColor = mix(baseColor, uColorCore, limb * 0.85 + flareMask * 1.5) * 0.25;
 
                 gl_FragColor = vec4(litColor, 1.0);
             }
@@ -146,13 +146,13 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
     const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial);
     sunGroup.add(sunMesh);
 
-    // 2. Solar Prominences (Scaled 5x larger, 5x brighter)
+    // 2. Solar Prominences (Scaled 0.25x smaller, 0.25x brighter)
     const prominenceMaterials: THREE.ShaderMaterial[] = [];
     const numProminences = 6;
     for (let i = 0; i < numProminences; i++) {
         const torusGeo = new THREE.TorusGeometry(
-            (0.6 + Math.random() * 0.4) * 5.0, 
-            (0.08 + Math.random() * 0.04) * 5.0, 
+            (0.6 + Math.random() * 0.4) * 0.25, 
+            (0.08 + Math.random() * 0.04) * 0.25, 
             16, 
             64, 
             Math.PI * (0.8 + Math.random() * 0.4)
@@ -173,8 +173,8 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
                 void main() {
                     vUv = uv;
                     vec3 p = position;
-                    // Magnetic loop turbulent displacement scaled 5x
-                    float disp = snoise((p / 5.0) * 3.0 + vec3(0.0, 0.0, uTime * 0.4 + uOffset)) * 0.15 * 5.0;
+                    // Magnetic loop turbulent displacement scaled 0.25x
+                    float disp = snoise((p * 4.0) * 3.0 + vec3(0.0, 0.0, uTime * 0.4 + uOffset)) * 0.15 * 0.25;
                     p += normal * disp;
                     vPos = p;
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
@@ -188,14 +188,14 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
                 ${noiseGLSL}
 
                 void main() {
-                    float noise = fbm((vPos / 5.0) * 5.0 - vec3(uTime * 0.5 + uOffset, 0.0, 0.0));
+                    float noise = fbm((vPos * 4.0) * 5.0 - vec3(uTime * 0.5 + uOffset, 0.0, 0.0));
                     float alpha = smoothstep(0.0, 0.5, sin(vUv.x * 3.14159)) * (noise * 0.5 + 0.5);
                     
                     vec3 col = mix(vec3(1.0, 0.15, 0.0), vec3(1.0, 0.7, 0.2), noise);
                     col = mix(col, vec3(1.0), smoothstep(0.6, 1.0, noise));
                     
-                    // Col multiplied by 10.0 (5x brighter than original 2.0)
-                    gl_FragColor = vec4(col * 10.0, alpha * 0.85);
+                    // Col multiplied by 0.5 (0.25x brightness of original 2.0)
+                    gl_FragColor = vec4(col * 0.5, alpha * 0.85);
                 }
             `,
             transparent: true,
@@ -207,10 +207,10 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
         prominenceMaterials.push(promMat);
         const promMesh = new THREE.Mesh(torusGeo, promMat);
 
-        // Position on scaled Sun's surface perimeter (r = 1.95 * 5.0 = 9.75)
+        // Position on scaled Sun's surface perimeter (r = 1.95 * 0.25 = 0.4875)
         const phi = Math.random() * Math.PI * 2;
         const theta = Math.acos(2 * Math.random() - 1);
-        const r = 9.75;
+        const r = 0.4875;
         promMesh.position.set(
             r * Math.sin(theta) * Math.cos(phi),
             r * Math.sin(theta) * Math.sin(phi),
@@ -222,8 +222,8 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
         sunGroup.add(promMesh);
     }
 
-    // 3. Coronal Mass Ejection (CME) Volumetric Jet Shell (5x larger, 5x brighter)
-    const cmeGeometry = new THREE.SphereGeometry(14.0, 64, 64);
+    // 3. Coronal Mass Ejection (CME) Volumetric Jet Shell (2.8 * 0.25 = 0.7)
+    const cmeGeometry = new THREE.SphereGeometry(0.7, 64, 64);
     const cmeMaterial = new THREE.ShaderMaterial({
         uniforms: {
             uTime: { value: 0 }
@@ -239,9 +239,9 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
                 vNormal = normalize(normalMatrix * normal);
                 vec3 p = position;
                 
-                // Pulsing explosive expansion along noise channels scaled 5x
-                float blast = max(0.0, snoise((position / 5.0) * 1.5 + vec3(uTime * 0.3, 0.0, 0.0)));
-                p += normal * (blast * 0.8 * 5.0);
+                // Pulsing explosive expansion along noise channels scaled 0.25x
+                float blast = max(0.0, snoise((position * 4.0) * 1.5 + vec3(uTime * 0.3, 0.0, 0.0)));
+                p += normal * (blast * 0.8 * 0.25);
                 
                 vPosition = p;
                 vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
@@ -261,12 +261,12 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
                 vec3 normal = normalize(vNormal);
                 float rim = 1.0 - max(dot(viewDir, normal), 0.0);
                 
-                float dynamicNoise = fbm((vPosition / 5.0) * 2.0 - vec3(0.0, uTime * 0.4, 0.0));
+                float dynamicNoise = fbm((vPosition * 4.0) * 2.0 - vec3(0.0, uTime * 0.4, 0.0));
                 float cmeIntensity = pow(rim, 3.0) * smoothstep(0.1, 0.7, dynamicNoise);
 
                 vec3 cmeColor = mix(vec3(1.0, 0.2, 0.0), vec3(1.0, 0.8, 0.3), cmeIntensity);
-                // Color multiplied by 12.5 (5x brighter than original 2.5)
-                gl_FragColor = vec4(cmeColor * 12.5, cmeIntensity * 0.7);
+                // Color multiplied by 0.625 (0.25x brightness of original 2.5)
+                gl_FragColor = vec4(cmeColor * 0.625, cmeIntensity * 0.7);
             }
         `,
         transparent: true,
@@ -277,8 +277,8 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
     const cmeMesh = new THREE.Mesh(cmeGeometry, cmeMaterial);
     sunGroup.add(cmeMesh);
 
-    // 4. Optical Flare Billboard (Camera-facing Corona Glow) (5x larger, 5x brighter)
-    const coronaGeo = new THREE.PlaneGeometry(60.0, 60.0);
+    // 4. Optical Flare Billboard (Camera-facing Corona Glow) (12.0 * 0.25 = 3.0)
+    const coronaGeo = new THREE.PlaneGeometry(3.0, 3.0);
     const coronaMat = new THREE.ShaderMaterial({
         uniforms: {
             uTime: { value: 0 },
@@ -307,8 +307,8 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
                 float intensity = 0.05 / (dist + rays * 0.1 + 0.02);
                 intensity *= smoothstep(1.2, 0.1, dist);
 
-                // Intensity multiplied by 10.0 (5x brighter than original 2.0)
-                gl_FragColor = vec4(uColor * intensity * 10.0, intensity);
+                // Intensity multiplied by 0.5 (0.25x brightness of original 2.0)
+                gl_FragColor = vec4(uColor * intensity * 0.5, intensity);
             }
         `,
         transparent: true,
@@ -319,8 +319,8 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
     const coronaMesh = new THREE.Mesh(coronaGeo, coronaMat);
     sunGroup.add(coronaMesh);
 
-    // 5. Directional Light for Illuminating Orbiting Planets (5x brighter: 5.0 * 5 = 25.0)
-    const sunLight = new THREE.DirectionalLight(0xfffaed, 25.0);
+    // 5. Directional Light for Illuminating Orbiting Planets (0.25x brightness: 5.0 * 0.25 = 1.25)
+    const sunLight = new THREE.DirectionalLight(0xfffaed, 1.25);
     sunLight.position.copy(position);
     sunLight.castShadow = true;
     scene.add(sunLight);
