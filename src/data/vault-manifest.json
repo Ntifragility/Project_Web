@@ -1,5 +1,14 @@
 [
   {
+    "id": "induction_motors-pf-at-different-levels-of-load-in-a-3-ph",
+    "title": "Calculation of PF at different levels of load in a 3-ph induction motor",
+    "subtitle": "",
+    "date": "2026-08-17",
+    "image": "/vault/Induction_motors/img/Motors_Datasheet.png",
+    "markdownPath": "/vault/ready/Induction_motors/PF at different levels of load in a 3-ph.md",
+    "category": "Induction_motors"
+  },
+  {
     "id": "docker-problems-when-dockerizing",
     "title": "Problems when dockerizing",
     "subtitle": "",
