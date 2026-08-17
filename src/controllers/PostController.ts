@@ -5,6 +5,7 @@
  */
 
 import { PostModel } from '@/models/PostModel';
+import { ContentModel } from '@/models/ContentModel';
 import { appState } from '@/models/AppState';
 import { markdownParsing } from '@/services/MarkdownParsing';
 import { PlotMathEngine } from '@/services/PlotMathEngine';
@@ -28,11 +29,13 @@ Chart.register(...registerables);
 export class PostController {
     private container: HTMLElement;
     private model: PostModel;
+    private contentModel: ContentModel;
     private cleanups: (() => void)[] = [];
 
     constructor(container: HTMLElement) {
         this.container = container;
         this.model = new PostModel();
+        this.contentModel = new ContentModel();
     }
 
     public async render(postId: string): Promise<void> {
@@ -48,11 +51,15 @@ export class PostController {
         this.container.innerHTML = renderPostShell(appState.themeClass);
         this.bindShellEvents();
 
+        // Lock root window scrolls so only the central markdown content scrolls
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+
         const contentArea = this.container.querySelector<HTMLElement>('#post-content-area');
         if (!contentArea) return;
 
         if (this.model.isMarkdownPost(postId) && post.markdownPath) {
-            await this.renderMarkdownPost(contentArea, post.markdownPath);
+            await this.renderMarkdownPost(contentArea, post.markdownPath, postId);
         } else if (post.sections && post.sections.length > 0) {
             contentArea.innerHTML = renderStaticPostSections(post.sections);
         }
@@ -152,7 +159,7 @@ export class PostController {
         this.cleanups.push(() => overlay.removeEventListener('click', handleOverlayClick));
     }
 
-    private async renderMarkdownPost(contentArea: HTMLElement, markdownPath: string): Promise<void> {
+    private async renderMarkdownPost(contentArea: HTMLElement, markdownPath: string, postId: string): Promise<void> {
         contentArea.innerHTML = renderMarkdownLoading();
 
         try {
@@ -162,11 +169,13 @@ export class PostController {
             const stickyNavHtml = renderStickyNav(title);
             const tocHtml = renderToc(toc);
             const breadcrumbsHtml = renderBreadcrumbs(metadata, markdownPath);
+            const chaptersHtml = this.renderChaptersHtml(postId);
 
             contentArea.innerHTML = renderMarkdownLayout(
                 stickyNavHtml,
                 tocHtml,
                 breadcrumbsHtml,
+                chaptersHtml,
                 title,
                 html
             );
@@ -218,6 +227,8 @@ export class PostController {
 
         if (headings.length === 0 || tocItems.length === 0) return;
 
+        const detailView = this.container.querySelector<HTMLElement>('.content-detail-view');
+
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -231,6 +242,7 @@ export class PostController {
                 }
             });
         }, {
+            root: detailView || null,
             rootMargin: '0px 0px -80% 0px',
             threshold: 0.1
         });
@@ -240,7 +252,7 @@ export class PostController {
     }
 
     private setupTocSmoothScroll(): void {
-        const links = this.container.querySelectorAll<HTMLAnchorElement>('a[data-toc-target]');
+        const links = this.container.querySelectorAll<HTMLElement>('.toc-link');
         const detailView = this.container.querySelector<HTMLElement>('.content-detail-view');
 
         links.forEach(link => {
@@ -275,7 +287,7 @@ export class PostController {
         const toggleBtn = this.container.querySelector('#sidebar-toggle');
         const closeBtn = this.container.querySelector('#sidebar-close');
         const overlay = this.container.querySelector<HTMLElement>('#sidebar-overlay');
-        const sidebar = this.container.querySelector<HTMLElement>('#sidebar-container');
+        const sidebar = this.container.querySelector<HTMLElement>('#right-sidebar-container');
         const tocLinks = this.container.querySelectorAll('.toc-item a');
 
         if (!toggleBtn || !sidebar || !overlay) return;
@@ -448,6 +460,35 @@ export class PostController {
         });
     }
 
+    private renderChaptersHtml(activePostId: string): string {
+        return this.contentModel.subjects.map((subject, index) => {
+            const chapterNum = index + 1;
+            const articlesHtml = subject.articles.map(art => {
+                const isActive = art.id === activePostId;
+                const activeClass = isActive ? 'active' : '';
+                return `
+                    <div class="chapter-article-item ${activeClass}">
+                        <a href="${art.url}" class="chapter-article-link">
+                            ${art.title}
+                        </a>
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="chapter-group">
+                    <div class="chapter-header">
+                        <span class="chapter-number">Chapter ${chapterNum}.</span>
+                        <span class="chapter-name">${subject.name}</span>
+                    </div>
+                    <div class="chapter-articles">
+                        ${articlesHtml}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
     public hide(): void {
         this.destroy();
         this.container.innerHTML = '';
@@ -457,5 +498,6 @@ export class PostController {
         this.cleanups.forEach(fn => fn());
         this.cleanups = [];
         document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
     }
 }

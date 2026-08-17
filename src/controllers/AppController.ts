@@ -171,6 +171,7 @@ export class AppController {
             window.scrollTo(0, 0);
         } else {
             // Home / Landing Mode
+            const wasDetailView = this.detailContainer.innerHTML !== '';
             this.postController.hide();
             if (this.contentWrapper) this.contentWrapper.style.display = 'block';
 
@@ -179,9 +180,22 @@ export class AppController {
                 const targetId = hash.substring(1).split('&')[0];
                 const targetElement = document.getElementById(targetId);
                 if (targetElement) {
-                    setTimeout(() => {
-                        targetElement.scrollIntoView({ behavior: 'smooth' });
-                    }, 100);
+                    if (wasDetailView && targetId === 'content') {
+                        // Instantly snap to the knowledge vault without scrolling through intermediate sections
+                        document.documentElement.classList.add('no-smooth-scroll');
+                        document.body.classList.add('no-smooth-scroll');
+                        
+                        targetElement.scrollIntoView({ behavior: 'auto' });
+                        
+                        setTimeout(() => {
+                            document.documentElement.classList.remove('no-smooth-scroll');
+                            document.body.classList.remove('no-smooth-scroll');
+                        }, 50);
+                    } else {
+                        setTimeout(() => {
+                            targetElement.scrollIntoView({ behavior: 'smooth' });
+                        }, 100);
+                    }
                 }
             }
 

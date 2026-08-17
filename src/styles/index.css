@@ -153,6 +153,12 @@ html {
     scroll-behavior: smooth;
 }
 
+html.no-smooth-scroll,
+html.no-smooth-scroll * {
+    scroll-behavior: auto !important;
+    scroll-snap-type: none !important;
+}
+
 body {
     margin: 0;
     background-color: var(--bg-color);
@@ -942,7 +948,7 @@ a {
     color: var(--text-primary);
     transition: var(--theme-transition);
     z-index: 2000;
-    overflow-y: auto;
+    overflow-y: auto; /* Enable scroll on detail view */
     padding: 0;
 }
 

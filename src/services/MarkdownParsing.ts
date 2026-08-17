@@ -231,12 +231,12 @@ export class MarkdownParsing {
 
         // Heading Renderer for the Vertical lateral floating bar (indice)
         renderer.heading = (text, level) => {
-            // 1. Create an ID for the link (example "My Heading" -> "my-heading")
-            const id = text.toLowerCase().replace(/[^\w]+/g, '-');
+            // Strip HTML tags to make the ID clean and short
+            const plainText = text.replace(/<[^>]*>/g, '');
+            const id = plainText.toLowerCase().replace(/[^\w]+/g, '-').replace(/^-+|-+$/g, '');
             // 2. Add the ID to the Table Of Contents (storing: id, text and level)
             this.toc.push({ id, text, level });
             // 3. Return the HTML version with the ID included so links work
-            // ex:  <h2 id="my-cool-heading">My Cool Heading</h2>
             return `<h${level} id="${id}">${text}</h${level}>`;
         };
 

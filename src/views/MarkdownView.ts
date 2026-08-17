@@ -57,6 +57,7 @@ export function renderMarkdownLayout(
     stickyNavHtml: string,
     tocHtml: string,
     breadcrumbsHtml: string,
+    chaptersHtml: string,
     title: string,
     bodyHtml: string
 ): string {
@@ -70,23 +71,42 @@ export function renderMarkdownLayout(
             </svg>
         </button>
         <div class="markdown-layout">
-            <div id="sidebar-container" class="markdown-sidebar-container">
-                <div class="sidebar-header-mobile">
-                    <span>Contents</span>
-                    <button id="sidebar-close" class="sidebar-close">&times;</button>
-                </div>
-                <aside class="markdown-sidebar">
-                    ${tocHtml}
-                </aside>
-            </div>
             <div id="sidebar-overlay" class="sidebar-overlay"></div>
+            
+            <!-- Left Column: Chapters / Articles Navigation -->
+            <div id="left-sidebar-container" class="markdown-left-sidebar-container">
+                <div class="left-sidebar-brand-wrapper">
+                    <span class="left-sidebar-brand">Vault Chapters</span>
+                </div>
+                <nav class="markdown-left-sidebar">
+                    ${chaptersHtml}
+                </nav>
+            </div>
+
+            <!-- Middle Column: Main Content -->
             <main class="markdown-content">
                 <div class="markdown-container">
-                    <div class="static-breadcrumbs">${breadcrumbsHtml}</div>
                     <h1 class="article-main-h1">${title}</h1>
                     <div class="markdown-body">${bodyHtml}</div>
                 </div>
             </main>
+
+            <!-- Right Column: Table of Contents for Current Article -->
+            <div id="right-sidebar-container" class="markdown-right-sidebar-container">
+                <div class="sidebar-header-mobile">
+                    <span>Contents</span>
+                    <button id="sidebar-close" class="sidebar-close">&times;</button>
+                </div>
+                <div class="sidebar-breadcrumbs-wrapper">
+                    ${breadcrumbsHtml}
+                </div>
+                <div class="right-sidebar-header">
+                    <span>Contents</span>
+                </div>
+                <aside class="markdown-right-sidebar">
+                    ${tocHtml}
+                </aside>
+            </div>
         </div>
     `;
 }
