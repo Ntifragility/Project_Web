@@ -11,6 +11,7 @@
     "ship": "npm run scan && git add . && git commit -m \"Site update\" && git push origin master"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.112.3",
     "chart.js": "^4.5.1",
     "highlight.js": "^11.11.1",
     "highlightjs-line-numbers.js": "^2.9.1",

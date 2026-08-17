@@ -4,6 +4,7 @@
  * Manages category grouping, selected subject state, and article filtering.
  */
 
+import { vaultService, ArticleRecord } from '@/services/VaultService';
 import vaultManifest from '@/data/vault-manifest.json';
 
 export type ContentType = 'video' | 'podcast' | 'blog' | 'talk';
@@ -29,12 +30,25 @@ export interface SubjectItem {
 }
 
 export class ContentModel {
-    public readonly items: ContentItem[];
-    public readonly subjects: SubjectItem[];
+    public items: ContentItem[] = [];
+    public subjects: SubjectItem[] = [];
     private _selectedSubject: string | null = null;
 
     constructor() {
-        this.items = vaultManifest.map(entry => ({
+        this.processEntries(vaultManifest as ArticleRecord[]);
+    }
+
+    public async init(): Promise<void> {
+        try {
+            const articles = await vaultService.fetchArticles();
+            this.processEntries(articles);
+        } catch (err) {
+            console.warn('[ContentModel] Failed to fetch articles from VaultService:', err);
+        }
+    }
+
+    private processEntries(entries: ArticleRecord[]): void {
+        this.items = entries.map(entry => ({
             id: entry.id,
             type: 'blog' as ContentType,
             title: entry.title,

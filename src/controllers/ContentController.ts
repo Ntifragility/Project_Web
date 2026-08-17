@@ -21,8 +21,12 @@ export class ContentController {
         this.model = new ContentModel();
     }
 
-    public init(): void {
+    public async init(): Promise<void> {
         this.container.innerHTML = renderContentSectionShell();
+        this.renderCurrentView();
+
+        // Refresh from remote Supabase if connected
+        await this.model.init();
         this.renderCurrentView();
     }
 

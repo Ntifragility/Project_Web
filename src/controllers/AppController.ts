@@ -14,6 +14,7 @@ import { renderIntro } from '@/views/IntroView';
 import { ToolsController } from './ToolsController';
 import { ContentController } from './ContentController';
 import { PostController } from './PostController';
+import { AdminController } from './AdminController';
 
 export class AppController {
     private navContainer: HTMLElement;
@@ -25,6 +26,7 @@ export class AppController {
     private toolsController: ToolsController | null = null;
     private contentController: ContentController | null = null;
     private postController: PostController;
+    private adminController: AdminController;
 
     private heroObserver: IntersectionObserver | null = null;
 
@@ -36,6 +38,7 @@ export class AppController {
         this.contentWrapper = document.getElementById('content-wrapper');
 
         this.postController = new PostController(this.detailContainer);
+        this.adminController = new AdminController(this.detailContainer);
 
         this.init();
     }
@@ -162,8 +165,17 @@ export class AppController {
         const hash = window.location.hash;
         const contentId = appState.getContentId();
 
-        if (contentId) {
+        if (hash === '#admin' || hash.startsWith('#admin/')) {
+            // Admin Cloud Synchronizer Mode
+            this.postController.hide();
+            this.adminController.render();
+
+            if (this.contentWrapper) this.contentWrapper.style.display = 'none';
+            if (this.canvasContainer) this.canvasContainer.classList.add('fade-out');
+            window.scrollTo(0, 0);
+        } else if (contentId) {
             // Detail View Mode
+            this.adminController.destroy();
             this.postController.render(contentId);
 
             if (this.contentWrapper) this.contentWrapper.style.display = 'none';
@@ -172,6 +184,7 @@ export class AppController {
         } else {
             // Home / Landing Mode
             const wasDetailView = this.detailContainer.innerHTML !== '';
+            this.adminController.destroy();
             this.postController.hide();
             if (this.contentWrapper) this.contentWrapper.style.display = 'block';
 

@@ -5,6 +5,7 @@
  */
 import '@/styles/index.css';
 import '@/styles/markdown.css';
+import '@/styles/admin.css';
 import { SceneManager } from '@/SceneManager';
 import { AppController } from '@/controllers/AppController';
 

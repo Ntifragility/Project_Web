@@ -30,6 +30,7 @@ import cpp from 'highlight.js/lib/languages/cpp';
 import java from 'highlight.js/lib/languages/java';
 import matlab from 'highlight.js/lib/languages/matlab';
 import katex from 'katex';
+import { vaultService } from './VaultService';
 
 // Import Styles
 import 'highlight.js/styles/atom-one-dark.css';
@@ -251,15 +252,15 @@ export class MarkdownParsing {
     }
 
     public async fetchAndParse(url: string): Promise<ParsedPost> {
-        const response = await fetch(url);
+        const resolvedUrl = vaultService.getFileUrl(url);
+        const response = await fetch(resolvedUrl);
         if (!response.ok) throw new Error(`Failed to fetch post: ${response.statusText}`);
         const text = await response.text();
-        return this.parse(text, url);
+        return this.parse(text, resolvedUrl);
     }
 
     public parse(rawMarkdown: string, url: string = ''): ParsedPost {
         this.toc = []; // Reset ToC count for each parse
-        // 1. Front Matter Extraction
         // 1. Front Matter Extraction (Lenient with CRLF and spaces)
         const frontMatterRegex = /^---\s*\r?\n([\s\S]*?)\r?\n---\s*/;
         const match = rawMarkdown.match(frontMatterRegex);
@@ -287,32 +288,18 @@ export class MarkdownParsing {
             const widthAttr = width ? `width="${width}"` : '';
 
             // 1. If it's already an absolute or external link, use it
-            if (cleanName.startsWith('/') || cleanName.startsWith('http')) {
+            if (cleanName.startsWith('/') || cleanName.startsWith('http://') || cleanName.startsWith('https://')) {
                 return `<img src="${cleanName}" ${widthAttr} alt="${cleanName}" />`;
             }
 
-            // 2. Determine base path from the post URL (e.g., /vault-harmonics/)
+            // 2. Determine base path from the post URL
             const basePath = url.substring(0, url.lastIndexOf('/') + 1);
 
             // 3. Image Resolution Strategy:
-            // Obsidian images can be in the same folder, /img/, or /attachments/
             let filenameEncoded = encodeURIComponent(cleanName);
-            let src = `${basePath}${filenameEncoded}`;
+            let src = `${basePath}img/${filenameEncoded}`;
 
-            // If we're in a vault junction, apply subfolder heuristics
-            if (url.includes('vault/')) {
-                // Heuristic: Many Obsidian users (including this one) use an /img/ subfolder
-                // for images. We default to checking /img/ if it's not in the root of the folder.
-                // In a more complex app, we'd use a fallback <img onerror="...">.
-
-                // For the Harmonics case specifically:
-                if (url.includes('NEMA - ARMONICOS')) {
-                    src = `${basePath}img/${filenameEncoded}`;
-                }
-                // We'll keep this heuristic extensible.
-            }
-
-            return `<img src="${src}" ${widthAttr} alt="${cleanName}" />`;
+            return `<img src="${src}" ${widthAttr} alt="${cleanName}" onerror="if(!this.dataset.retry){this.dataset.retry='1';this.src='${basePath}${filenameEncoded}';}" />`;
         });
 
         // 3. WikiLink Pre-processing

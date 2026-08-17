@@ -41,7 +41,12 @@ export class PostController {
     public async render(postId: string): Promise<void> {
         this.destroy(); // Clean up previous listeners if any
 
-        const post = this.model.getPost(postId);
+        let post = this.model.getPost(postId);
+        if (!post) {
+            post = await this.model.getPostAsync(postId);
+            await this.contentModel.init();
+        }
+
         if (!post) {
             this.container.innerHTML = renderNotFound();
             return;

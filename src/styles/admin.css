@@ -1,0 +1,330 @@
+/**
+ * @file admin.css
+ * @description Styles for the Web-based Folder Uploader & Cloud Synchronizer.
+ */
+
+.admin-view-wrapper {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    background: radial-gradient(circle at 50% 20%, rgba(77, 153, 255, 0.08) 0%, rgba(10, 11, 14, 0.95) 70%);
+    box-sizing: border-box;
+    font-family: var(--font-body, system-ui, -apple-system, sans-serif);
+}
+
+.admin-panel-card {
+    background: rgba(18, 20, 26, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    max-width: 760px;
+    width: 100%;
+    padding: 2.5rem;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+}
+
+.admin-panel-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.admin-header-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #ffffff;
+    letter-spacing: 0.02em;
+}
+
+.admin-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.admin-status-dot.online {
+    background: #10b981;
+    box-shadow: 0 0 10px #10b981;
+}
+
+.admin-status-dot.offline {
+    background: #f59e0b;
+    box-shadow: 0 0 10px #f59e0b;
+}
+
+.admin-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.admin-close-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    transform: scale(1.05);
+}
+
+.admin-title {
+    font-family: var(--font-heading, inherit);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.admin-subtitle {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.65);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.admin-alert-banner {
+    display: flex;
+    gap: 1rem;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    color: #fbbf24;
+}
+
+.admin-alert-banner .alert-icon {
+    font-size: 1.5rem;
+}
+
+.admin-alert-banner .alert-text {
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.admin-alert-banner pre {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    margin-top: 0.5rem;
+    color: #e2e8f0;
+    font-family: monospace;
+}
+
+.admin-dropzone {
+    border: 2px dashed rgba(77, 153, 255, 0.4);
+    background: rgba(77, 153, 255, 0.03);
+    border-radius: 16px;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+
+.admin-dropzone:hover,
+.admin-dropzone.drag-over {
+    border-color: #4D99FF;
+    background: rgba(77, 153, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.dropzone-icon {
+    margin-bottom: 1rem;
+}
+
+.dropzone-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0 0 0.5rem 0;
+}
+
+.dropzone-desc {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0 0 1.25rem 0;
+}
+
+.admin-select-btn {
+    background: #4D99FF;
+    color: #0d1117;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.admin-select-btn:hover:not(:disabled) {
+    background: #6baaff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(77, 153, 255, 0.4);
+}
+
+.admin-select-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.admin-upload-status {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.status-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+.status-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.status-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4D99FF, #38bdf8);
+    border-radius: 999px;
+    transition: width 0.2s ease;
+}
+
+.admin-terminal-log {
+    background: rgba(10, 12, 16, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 1rem;
+    max-height: 180px;
+    overflow-y: auto;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.log-entry {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.log-entry.info {
+    color: #94a3b8;
+}
+
+.log-entry.prompt {
+    color: #38bdf8;
+}
+
+.log-entry.success {
+    color: #34d399;
+}
+
+.log-entry.error {
+    color: #f87171;
+}
+
+.log-entry code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.15rem 0.35rem;
+    border-radius: 4px;
+}
+
+.admin-panel-footer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.admin-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+}
+
+.admin-action-btn.primary {
+    background: #4D99FF;
+    color: #0a0e17;
+}
+
+.admin-action-btn.primary:hover:not(:disabled) {
+    background: #70adff;
+    box-shadow: 0 4px 15px rgba(77, 153, 255, 0.4);
+}
+
+.admin-action-btn.secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.admin-action-btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.vault-sync-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 8px;
+    background: rgba(77, 153, 255, 0.08);
+    border: 1px solid rgba(77, 153, 255, 0.25);
+    color: #4D99FF;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.vault-sync-link:hover {
+    background: rgba(77, 153, 255, 0.18);
+    border-color: #4D99FF;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(77, 153, 255, 0.2);
+}
