@@ -59,9 +59,9 @@ export class SceneManager {
         this.composer.addPass(new RenderPass(this.scene, this.camera));
         const bloomPass = new UnrealBloomPass(
             new THREE.Vector2(window.innerWidth, window.innerHeight),
-            0.8,   // bloom strength
-            0.4,   // radius
-            0.85   // high threshold so ONLY the Sun blooms, not Earth
+            1.3,   // strength
+            0.55,  // radius
+            0.35   // threshold
         );
         this.composer.addPass(bloomPass);
 

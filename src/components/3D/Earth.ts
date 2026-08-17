@@ -18,8 +18,8 @@ export function createEarth(scene: THREE.Group, loadingManager?: THREE.LoadingMa
         bumpMap: loader.load(BUMP_URL),
         bumpScale: 0.05,
         specularMap: loader.load(SPECULAR_URL),
-        specular: new THREE.Color(0x333333),
-        shininess: 6
+        specular: new THREE.Color('grey'),
+        shininess: 10
     });
     const earth = new THREE.Mesh(geometry, material);
     scene.add(earth);
@@ -29,7 +29,7 @@ export function createEarth(scene: THREE.Group, loadingManager?: THREE.LoadingMa
     const cloudMaterial = new THREE.MeshLambertMaterial({
         map: loader.load(CLOUDS_URL),
         transparent: true,
-        opacity: 0.6,
+        opacity: 0.8,
         side: THREE.DoubleSide,
         blending: THREE.AdditiveBlending,
         depthWrite: false

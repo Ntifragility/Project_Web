@@ -4,6 +4,13 @@
  */
 import * as THREE from 'three';
 
+// =========================================================================
+// 🎛️ SINGLE CONTROL FOR SUNLIGHT / EARTH SHINE:
+// Change this single number to adjust the intensity of the light on Earth:
+// (Default from your script is 500. Try 350, 250, or 180 to fine-tune)
+export const EARTH_SUNLIGHT_INTENSITY = 320;
+// =========================================================================
+
 export interface RealisticSunInstance {
     group: THREE.Group;
     update: (time: number) => void;
@@ -220,12 +227,9 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
     const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(1.2, 128, 128), sunMat);
     sunGroup.add(sunMesh);
 
-    // Sunlight illuminating Earth
-    const sunLight = new THREE.DirectionalLight(0xfff8f0, 1.2);
-    sunLight.position.set(0, 0, 0);
-    sunLight.target.position.set(-position.x, -position.y, -position.z);
+    // Light (Powered by the single constant at top of file)
+    const sunLight = new THREE.PointLight(0xfff8f0, EARTH_SUNLIGHT_INTENSITY, 400, 1.0);
     sunGroup.add(sunLight);
-    sunGroup.add(sunLight.target);
 
     // Corona layers
     const coronaConfigs = [
