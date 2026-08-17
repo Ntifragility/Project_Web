@@ -58,13 +58,14 @@ export function renderMarkdownLayout(
     tocHtml: string,
     breadcrumbsHtml: string,
     chaptersHtml: string,
+    bookTitle: string,
     title: string,
     bodyHtml: string
 ): string {
     return `
         <div id="article-top-sentinel" class="article-top-sentinel"></div>
         ${stickyNavHtml}
-        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle Table of Contents">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle Outline">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="9" y1="3" x2="9" y2="21"></line>
@@ -73,10 +74,14 @@ export function renderMarkdownLayout(
         <div class="markdown-layout">
             <div id="sidebar-overlay" class="sidebar-overlay"></div>
             
-            <!-- Left Column: Chapters / Articles Navigation -->
+            <!-- Left Column: Chapters Navigation for the Active Book -->
             <div id="left-sidebar-container" class="markdown-left-sidebar-container">
                 <div class="left-sidebar-brand-wrapper">
-                    <span class="left-sidebar-brand">Vault Chapters</span>
+                    <span class="left-sidebar-label">Book</span>
+                    <h3 class="left-sidebar-book-title">${bookTitle}</h3>
+                </div>
+                <div class="left-sidebar-section-header">
+                    <span>Chapters</span>
                 </div>
                 <nav class="markdown-left-sidebar">
                     ${chaptersHtml}

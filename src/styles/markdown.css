@@ -145,15 +145,40 @@
     margin-bottom: 1.25rem;
     padding-bottom: 0.75rem;
     border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
-.left-sidebar-brand {
+.left-sidebar-label {
     font-family: var(--font-heading);
+    font-size: 0.72rem;
     font-weight: 700;
-    font-size: 0.82rem;
     text-transform: uppercase;
     letter-spacing: 0.12em;
+    color: var(--accent-blue);
+    opacity: 0.9;
+}
+
+.left-sidebar-book-title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.05rem;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
     color: var(--text-primary);
+    margin: 0;
+    word-break: break-word;
+}
+
+.left-sidebar-section-header {
+    margin-bottom: 0.85rem;
+    color: var(--text-primary);
+    font-family: var(--font-heading);
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
 }
 
 .markdown-left-sidebar {
@@ -254,7 +279,7 @@
 }
 
 .chapter-article-item:hover {
-    border-left-color: rgba(255, 255, 255, 0.15);
+    border-left-color: rgba(255, 255, 255, 0.2);
 }
 
 .chapter-article-item:hover .chapter-article-link {
@@ -265,13 +290,39 @@
     border-left-color: var(--accent-blue);
 }
 
+.chapter-article-item.active .chapter-number {
+    color: #4D99FF;
+    font-weight: 700;
+}
+
+.chapter-article-item.active .chapter-title {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
 .chapter-article-link {
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 0.88rem;
     line-height: 1.4;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
     transition: color 0.2s ease;
+}
+
+.chapter-number {
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent-blue);
+    letter-spacing: 0.04em;
+    opacity: 0.85;
+}
+
+.chapter-title {
+    color: inherit;
+    word-break: break-word;
 }
 
 /* Responsive breakpoint overrides */

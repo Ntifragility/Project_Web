@@ -174,13 +174,14 @@ export class PostController {
             const stickyNavHtml = renderStickyNav(title);
             const tocHtml = renderToc(toc);
             const breadcrumbsHtml = renderBreadcrumbs(metadata, markdownPath);
-            const chaptersHtml = this.renderChaptersHtml(postId);
+            const { html: chaptersHtml, bookTitle } = this.renderChaptersHtml(postId);
 
             contentArea.innerHTML = renderMarkdownLayout(
                 stickyNavHtml,
                 tocHtml,
                 breadcrumbsHtml,
                 chaptersHtml,
+                bookTitle,
                 title,
                 html
             );
@@ -465,33 +466,44 @@ export class PostController {
         });
     }
 
-    private renderChaptersHtml(activePostId: string): string {
-        return this.contentModel.subjects.map((subject, index) => {
-            const chapterNum = index + 1;
-            const articlesHtml = subject.articles.map(art => {
-                const isActive = art.id === activePostId;
-                const activeClass = isActive ? 'active' : '';
-                return `
-                    <div class="chapter-article-item ${activeClass}">
-                        <a href="${art.url}" class="chapter-article-link">
-                            ${art.title}
-                        </a>
-                    </div>
-                `;
-            }).join('');
+    private renderChaptersHtml(activePostId: string): { html: string; bookTitle: string } {
+        // Find the active subject/book that contains this article
+        const currentSubject = this.contentModel.subjects.find(s =>
+            s.articles.some(a => a.id === activePostId)
+        ) || this.contentModel.subjects[0];
 
+        if (!currentSubject) {
+            return { html: '', bookTitle: 'Book' };
+        }
+
+        const bookTitle = currentSubject.name;
+
+        // Order chapters chronologically (or reverse to show in logical chapter sequence)
+        const articles = [...currentSubject.articles].reverse();
+
+        const chaptersListHtml = articles.map((art, index) => {
+            const chapterNum = index + 1;
+            const isActive = art.id === activePostId;
+            const activeClass = isActive ? 'active' : '';
             return `
-                <div class="chapter-group">
-                    <div class="chapter-header">
-                        <span class="chapter-number">Chapter ${chapterNum}.</span>
-                        <span class="chapter-name">${subject.name}</span>
-                    </div>
-                    <div class="chapter-articles">
-                        ${articlesHtml}
-                    </div>
+                <div class="chapter-article-item ${activeClass}">
+                    <a href="${art.url}" class="chapter-article-link">
+                        <span class="chapter-number">Ch. ${chapterNum}</span>
+                        <span class="chapter-title">${art.title}</span>
+                    </a>
                 </div>
             `;
         }).join('');
+
+        const html = `
+            <div class="chapter-group">
+                <div class="chapter-articles">
+                    ${chaptersListHtml}
+                </div>
+            </div>
+        `;
+
+        return { html, bookTitle };
     }
 
     public hide(): void {

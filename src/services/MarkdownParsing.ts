@@ -279,6 +279,9 @@ export class MarkdownParsing {
             body = rawMarkdown.replace(frontMatterRegex, '').trim();
         }
 
+        // Strip leading # H1 from body if it matches the main article title or begins the document
+        body = body.replace(/^\s*#\s+[^\r\n]+\r?\n/, '').trim();
+
         // 2. Obsidian Image Pre-processing
         // Transforms ![[image.png | 300x200]] to <img src="..." width="300" />
         body = body.replace(/!\[\[(.*?)(?:\|\s*(.*?))?\]\]/g, (_match, filename, size) => {
