@@ -268,16 +268,16 @@ export class PlotMathEngine {
                 scales: {
                     x: {
                         type: 'linear',
-                        title: { display: true, text: blueprint.axis.x.title || 'X', color: 'rgba(255,255,255,0.6)', font: { family: 'JetBrains Mono' } },
+                        title: { display: true, text: blueprint.axis.x.title || 'X', color: 'rgba(255,255,255,0.6)', font: { family: 'JetBrains Mono', size: 11 } },
                         grid: { color: 'rgba(255,255,255,0.05)' },
-                        ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'JetBrains Mono' } },
+                        ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'JetBrains Mono', size: 10 } },
                         min: xMin, max: xMax
                     },
                     y: {
                         type: 'linear',
-                        title: { display: true, text: blueprint.axis.y.title || 'Y', color: 'rgba(255,255,255,0.6)', font: { family: 'JetBrains Mono' } },
+                        title: { display: true, text: blueprint.axis.y.title || 'Y', color: 'rgba(255,255,255,0.6)', font: { family: 'JetBrains Mono', size: 11 } },
                         grid: { color: 'rgba(255,255,255,0.05)' },
-                        ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'JetBrains Mono' } },
+                        ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'JetBrains Mono', size: 10 } },
                         min: yMin, max: yMax
                     }
                 }
