@@ -1,25 +1,29 @@
 /**
  * @file Earth.ts
- * @description 3D earth globe component with shaders and textures.
+ * @description 3D earth globe component with day/night mapping, bump topography, and atmosphere.
  */
 import * as THREE from 'three';
 
 export function createEarth(scene: THREE.Group, loadingManager?: THREE.LoadingManager) {
     const loader = new THREE.TextureLoader(loadingManager);
-    const TEXTURE_URL = 'https://unpkg.com/three-globe/example/img/earth-night.jpg';
+    const DAY_TEXTURE_URL = 'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
+    const NIGHT_TEXTURE_URL = 'https://unpkg.com/three-globe/example/img/earth-night.jpg';
     const BUMP_URL = 'https://unpkg.com/three-globe/example/img/earth-topology.png';
     const SPECULAR_URL = 'https://unpkg.com/three-globe/example/img/earth-water.png';
     const CLOUDS_URL = 'https://unpkg.com/three-globe/example/img/earth-clouds.png';
 
-    // Earth Mesh (PBR Standard Material - constant reflection area independent of light intensity)
+    // Earth Mesh (Full day illumination on lit hemisphere + city lights on night side)
     const geometry = new THREE.SphereGeometry(1, 64, 64);
     const material = new THREE.MeshStandardMaterial({
-        map: loader.load(TEXTURE_URL),
+        map: loader.load(DAY_TEXTURE_URL),
         bumpMap: loader.load(BUMP_URL),
         bumpScale: 0.04,
         roughnessMap: loader.load(SPECULAR_URL),
-        roughness: 0.45,
-        metalness: 0.05
+        roughness: 0.5,
+        metalness: 0.05,
+        emissiveMap: loader.load(NIGHT_TEXTURE_URL),
+        emissive: new THREE.Color(0x444444),
+        emissiveIntensity: 0.8
     });
     const earth = new THREE.Mesh(geometry, material);
     scene.add(earth);
