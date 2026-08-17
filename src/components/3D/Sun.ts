@@ -6,9 +6,9 @@ import * as THREE from 'three';
 
 // =========================================================================
 // 🎛️ SINGLE CONTROL FOR SUNLIGHT / EARTH SHINE:
-// Change this single number to adjust the intensity of the light on Earth:
-// (Default from your script is 500. Try 350, 250, or 180 to fine-tune)
-export const EARTH_SUNLIGHT_INTENSITY = 320;
+// Change this single number to adjust the brightness on Earth.
+// (Default: 1.2. Try 0.8, 1.0, 1.5, 2.0. Will NOT shrink the illuminated area!)
+export const EARTH_SUNLIGHT_INTENSITY = 1.2;
 // =========================================================================
 
 export interface RealisticSunInstance {
@@ -151,124 +151,127 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
 
     // ─── Procedural Flare Texture ────────────────────────────
     function createProceduralFlareTexture(): THREE.CanvasTexture {
-      const size = 1024;
-      const canvas = document.createElement('canvas');
-      canvas.width = size; canvas.height = size;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return new THREE.CanvasTexture(canvas);
+        const size = 1024;
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return new THREE.CanvasTexture(canvas);
 
-      const center = size / 2;
+        const center = size / 2;
 
-      const gradient = ctx.createRadialGradient(center, center, 0, center, center, center);
-      gradient.addColorStop(0.0, 'rgba(255,255,240,1.0)');
-      gradient.addColorStop(0.1, 'rgba(255,240,200,0.8)');
-      gradient.addColorStop(0.3, 'rgba(255,200,100,0.35)');
-      gradient.addColorStop(0.6, 'rgba(255,100,50,0.08)');
-      gradient.addColorStop(1.0, 'rgba(0,0,0,0)');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, size, size);
+        const gradient = ctx.createRadialGradient(center, center, 0, center, center, center);
+        gradient.addColorStop(0.0, 'rgba(255,255,240,1.0)');
+        gradient.addColorStop(0.1, 'rgba(255,240,200,0.8)');
+        gradient.addColorStop(0.3, 'rgba(255,200,100,0.35)');
+        gradient.addColorStop(0.6, 'rgba(255,100,50,0.08)');
+        gradient.addColorStop(1.0, 'rgba(0,0,0,0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, size, size);
 
-      ctx.globalCompositeOperation = 'screen';
+        ctx.globalCompositeOperation = 'screen';
 
-      function drawRay(angle: number, len: number, width: number, alpha: number) {
-        if (!ctx) return;
-        const x = center + Math.cos(angle) * len;
-        const y = center + Math.sin(angle) * len;
-        const rayGrad = ctx.createLinearGradient(center, center, x, y);
-        rayGrad.addColorStop(0.0, `rgba(255,255,230,${alpha})`);
-        rayGrad.addColorStop(0.4, `rgba(255,190,80,${alpha * 0.35})`);
-        rayGrad.addColorStop(1.0, 'rgba(255,100,30,0)');
-        ctx.strokeStyle = rayGrad;
-        ctx.lineWidth = width;
-        ctx.beginPath();
-        ctx.moveTo(center, center);
-        ctx.lineTo(x, y);
-        ctx.stroke();
-      }
+        function drawRay(angle: number, len: number, width: number, alpha: number) {
+            if (!ctx) return;
+            const x = center + Math.cos(angle) * len;
+            const y = center + Math.sin(angle) * len;
+            const rayGrad = ctx.createLinearGradient(center, center, x, y);
+            rayGrad.addColorStop(0.0, `rgba(255,255,230,${alpha})`);
+            rayGrad.addColorStop(0.4, `rgba(255,190,80,${alpha * 0.35})`);
+            rayGrad.addColorStop(1.0, 'rgba(255,100,30,0)');
+            ctx.strokeStyle = rayGrad;
+            ctx.lineWidth = width;
+            ctx.beginPath();
+            ctx.moveTo(center, center);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
 
-      // 4 dominant spikes at roughly 90° apart, jittered
-      const dominantAngles = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
-      dominantAngles.forEach((baseAngle) => {
-        const angle = baseAngle + (Math.random() - 0.5) * 0.12;
-        const len = center * (0.85 + Math.random() * 0.15);
-        drawRay(angle, len, 3.0 + Math.random() * 1.5, 0.75);
-      });
+        // 4 dominant spikes at roughly 90° apart, jittered
+        const dominantAngles = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
+        dominantAngles.forEach((baseAngle) => {
+            const angle = baseAngle + (Math.random() - 0.5) * 0.12;
+            const len = center * (0.85 + Math.random() * 0.15);
+            drawRay(angle, len, 3.0 + Math.random() * 1.5, 0.75);
+        });
 
-      // Irregular secondary flecks — random count, angle, length, width
-      const secondaryCount = 18 + Math.floor(Math.random() * 10);
-      for (let i = 0; i < secondaryCount; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const len = center * (0.2 + Math.random() * 0.45);
-        const width = 0.5 + Math.random() * 1.3;
-        const alpha = 0.15 + Math.random() * 0.25;
-        drawRay(angle, len, width, alpha);
-      }
+        // Irregular secondary flecks — random count, angle, length, width
+        const secondaryCount = 18 + Math.floor(Math.random() * 10);
+        for (let i = 0; i < secondaryCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const len = center * (0.2 + Math.random() * 0.45);
+            const width = 0.5 + Math.random() * 1.3;
+            const alpha = 0.15 + Math.random() * 0.25;
+            drawRay(angle, len, width, alpha);
+        }
 
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.needsUpdate = true;
-      return texture;
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        return texture;
     }
 
     // ─── Build Sun Components ───────────────────────────────────────────
     // Core
     const sunUniforms = {
-      uTime: { value: 0 },
-      uColorCore: { value: new THREE.Color(0xfff2df) },
-      uColorMid:  { value: new THREE.Color(0xffc233) },
-      uColorDark: { value: new THREE.Color(0xff5500) },
-      uColorRim:  { value: new THREE.Color(0xff7a1a) },
+        uTime: { value: 0 },
+        uColorCore: { value: new THREE.Color(0xfff2df) },
+        uColorMid: { value: new THREE.Color(0xffc233) },
+        uColorDark: { value: new THREE.Color(0xff5500) },
+        uColorRim: { value: new THREE.Color(0xff7a1a) },
     };
 
     const sunMat = new THREE.ShaderMaterial({
-      vertexShader: SUN_SURFACE_VERTEX,
-      fragmentShader: SUN_SURFACE_FRAGMENT,
-      uniforms: sunUniforms,
+        vertexShader: SUN_SURFACE_VERTEX,
+        fragmentShader: SUN_SURFACE_FRAGMENT,
+        uniforms: sunUniforms,
     });
     const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(1.2, 128, 128), sunMat);
     sunGroup.add(sunMesh);
 
-    // Light (Powered by the single constant at top of file)
-    const sunLight = new THREE.PointLight(0xfff8f0, EARTH_SUNLIGHT_INTENSITY, 400, 1.0);
-    sunGroup.add(sunLight);
+    // Sunlight illuminating Earth (Directional parallel rays: covers entire 180° hemisphere without distance falloff)
+    const sunLight = new THREE.DirectionalLight(0xfff8f0, EARTH_SUNLIGHT_INTENSITY);
+    sunLight.position.copy(position);
+    sunLight.target.position.set(0, 0, 0);
+    scene.add(sunLight);
+    scene.add(sunLight.target);
 
     // Corona layers
     const coronaConfigs = [
-      { r: 1.35, color: 0xffdd88, op: 0.4,  speed: 0.15 },
-      { r: 1.65, color: 0xffaa44, op: 0.25, speed: 0.10 },
-      { r: 2.1,  color: 0xff6600, op: 0.12, speed: 0.08 },
-      { r: 2.8,  color: 0xff3300, op: 0.06, speed: 0.05 },
+        { r: 1.35, color: 0xffdd88, op: 0.4, speed: 0.15 },
+        { r: 1.65, color: 0xffaa44, op: 0.25, speed: 0.10 },
+        { r: 2.1, color: 0xff6600, op: 0.12, speed: 0.08 },
+        { r: 2.8, color: 0xff3300, op: 0.06, speed: 0.05 },
     ];
     const coronaUniforms: Array<{ uniforms: { uTime: { value: number }; uColor: { value: THREE.Color }; uOpacity: { value: number }; uRadius: { value: number } }; speed: number }> = [];
 
     coronaConfigs.forEach(cfg => {
-      const u = {
-        uTime: { value: 0 },
-        uColor: { value: new THREE.Color(cfg.color) },
-        uOpacity: { value: cfg.op },
-        uRadius: { value: cfg.r * 2 },
-      };
-      coronaUniforms.push({ uniforms: u, speed: cfg.speed });
-      const mat = new THREE.ShaderMaterial({
-        vertexShader: CORONA_VERTEX,
-        fragmentShader: CORONA_FRAGMENT,
-        uniforms: u,
-        transparent: true,
-        depthWrite: false,
-        side: THREE.BackSide,
-        blending: THREE.AdditiveBlending,
-      });
-      sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(cfg.r, 64, 64), mat));
+        const u = {
+            uTime: { value: 0 },
+            uColor: { value: new THREE.Color(cfg.color) },
+            uOpacity: { value: cfg.op },
+            uRadius: { value: cfg.r * 2 },
+        };
+        coronaUniforms.push({ uniforms: u, speed: cfg.speed });
+        const mat = new THREE.ShaderMaterial({
+            vertexShader: CORONA_VERTEX,
+            fragmentShader: CORONA_FRAGMENT,
+            uniforms: u,
+            transparent: true,
+            depthWrite: false,
+            side: THREE.BackSide,
+            blending: THREE.AdditiveBlending,
+        });
+        sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(cfg.r, 64, 64), mat));
     });
 
     // Flare billboard
     const flareTex = createProceduralFlareTexture();
     const flareMat = new THREE.MeshBasicMaterial({
-      map: flareTex,
-      transparent: true,
-      opacity: 0.15,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      color: 0xffddaa,
+        map: flareTex,
+        transparent: true,
+        opacity: 0.15,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        color: 0xffddaa,
     });
     const flareMesh = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), flareMat);
     sunGroup.add(flareMesh);
