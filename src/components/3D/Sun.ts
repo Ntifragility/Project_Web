@@ -8,7 +8,7 @@ import * as THREE from 'three';
 // 🎛️ SINGLE CONTROL FOR SUNLIGHT / EARTH SHINE:
 // Change this single number to adjust the brightness on Earth.
 // (Default: 1.2. Try 0.8, 1.0, 1.5, 2.0. Will NOT shrink the illuminated area!)
-export const EARTH_SUNLIGHT_INTENSITY = 1.2;
+export const EARTH_SUNLIGHT_INTENSITY = 50;
 // =========================================================================
 
 export interface RealisticSunInstance {
