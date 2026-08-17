@@ -10,6 +10,9 @@
 
 import * as THREE from 'three'; // the 3D library three.js
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'; // the camera controls
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { createGalaxy } from '@/components/3D/Galaxy'; // the galaxy component
 import { createEarth } from '@/components/3D/Earth'; // the earth component
 import { createAtmosphere } from '@/components/3D/Atmosphere'; // the atmosphere component
@@ -24,6 +27,7 @@ export class SceneManager {
     private scene: THREE.Scene; // the main scene
     private camera: THREE.PerspectiveCamera; // the camera
     private renderer: THREE.WebGLRenderer; // the renderer
+    private composer: EffectComposer; // the postprocessing composer
     private controls: OrbitControls; // the controls
     private earthGroup: THREE.Group; // the earth group
     private earth: THREE.Mesh; // the earth
@@ -43,12 +47,23 @@ export class SceneManager {
         this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.camera.position.z = isMobile ? 6.0 : 2.5;
 
-        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        this.renderer.outputEncoding = THREE.sRGBEncoding;
+        this.renderer.toneMappingExposure = 0.9;
         canvasContainer.appendChild(this.renderer.domElement);
+
+        // Setup Post-Processing Bloom
+        this.composer = new EffectComposer(this.renderer);
+        this.composer.addPass(new RenderPass(this.scene, this.camera));
+        const bloomPass = new UnrealBloomPass(
+            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            0.8,   // bloom strength
+            0.4,   // radius
+            0.85   // high threshold so ONLY the Sun blooms, not Earth
+        );
+        this.composer.addPass(bloomPass);
 
         // 2. Setup Loading Manager
         const loadingManager = new THREE.LoadingManager();
@@ -117,6 +132,7 @@ export class SceneManager {
         this.controls.maxDistance = isMobile ? 6.0 : 5.0;
 
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.composer.setSize(window.innerWidth, window.innerHeight);
     }
 
     animate() { // handles animation
@@ -131,6 +147,6 @@ export class SceneManager {
         this.clouds.rotation.y += 0.0013;
 
         this.controls.update();
-        this.renderer.render(this.scene, this.camera);
+        this.composer.render();
     }
 }

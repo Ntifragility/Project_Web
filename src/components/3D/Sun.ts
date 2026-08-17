@@ -1,8 +1,6 @@
 /**
  * @file Sun.ts
- * @description Ultra-realistic Sun with convective plasma granulation, limb darkening,
- * dynamic magnetic flux loops (solar prominences), coronal mass ejections (CME), and additive corona.
- * Scaled at 1.0x baseline size and 1.25x baseline brightness (2.5x brighter than previous 0.5x setting).
+ * @description Brutal Sun implementation matching the user's specification.
  */
 import * as THREE from 'three';
 
@@ -15,332 +13,278 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
     const sunGroup = new THREE.Group();
     sunGroup.position.copy(position);
 
-    // Shared Simplex Noise GLSL chunk
-    const noiseGLSL = `
-        vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-        vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-        vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
-        vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+    // Scaling factor for distant positioning
+    const SCALE = 3.5;
+    sunGroup.scale.set(SCALE, SCALE, SCALE);
 
-        float snoise(vec3 v) {
-            const vec2 C = vec2(1.0/6.0, 1.0/3.0);
-            const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
-            vec3 i  = floor(v + dot(v, C.yyy));
-            vec3 x0 = v - i + dot(i, C.xxx);
-            vec3 g = step(x0.yzx, x0.xyz);
-            vec3 l = 1.0 - g;
-            vec3 i1 = min(g.xyz, l.zxy);
-            vec3 i2 = max(g.xyz, l.zxy);
-            vec3 x1 = x0 - i1 + C.xxx;
-            vec3 x2 = x0 - i2 + C.yyy;
-            vec3 x3 = x0 - D.yyy;
-            i = mod289(i);
-            vec4 p = permute(permute(permute(
-                        i.z + vec4(0.0, i1.z, i2.z, 1.0))
-                    + i.y + vec4(0.0, i1.y, i2.y, 1.0))
-                    + i.x + vec4(0.0, i1.x, i2.x, 1.0));
-            float n_ = 0.142857142857;
-            vec3  ns = n_ * D.wyz - D.xzx;
-            vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
-            vec4 x_ = floor(j * ns.z);
-            vec4 y_ = floor(j - 7.0 * x_);
-            vec4 x = x_ *ns.x + ns.yyyy;
-            vec4 y = y_ *ns.x + ns.yyyy;
-            vec4 h = 1.0 - abs(x) - abs(y);
-            vec4 b0 = vec4(x.xy, y.xy);
-            vec4 b1 = vec4(x.zw, y.zw);
-            vec4 s0 = floor(b0)*2.0 + 1.0;
-            vec4 s1 = floor(b1)*2.0 + 1.0;
-            vec4 sh = -step(h, vec4(0.0));
-            vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
-            vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
-            vec3 p0 = vec3(a0.xy, h.x);
-            vec3 p1 = vec3(a0.zw, h.y);
-            vec3 p2 = vec3(a1.xy, h.z);
-            vec3 p3 = vec3(a1.zw, h.w);
-            vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
-            p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
-            vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
-            m = m * m;
-            return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
-        }
-
-        float fbm(vec3 p) {
-            float v = 0.0;
-            float a = 0.5;
-            vec3 shift = vec3(100.0);
-            for (int i = 0; i < 4; ++i) {
-                v += a * snoise(p);
-                p = p * 2.0 + shift;
-                a *= 0.5;
-            }
-            return v;
-        }
+    // ─── Sun Surface Shaders ─────────────────────────────────────────────
+    const SUN_SURFACE_VERTEX = `
+      varying vec2 vUv;
+      varying vec3 vNormal;
+      void main() {
+        vUv = uv;
+        vNormal = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
     `;
 
-    // 1. Core Photosphere (Radius 2.0)
-    const sunGeometry = new THREE.SphereGeometry(2.0, 128, 128);
-    const sunMaterial = new THREE.ShaderMaterial({
-        uniforms: {
-            uTime: { value: 0 },
-            uColorCore: { value: new THREE.Color(0xffffff) },
-            uColorMid: { value: new THREE.Color(0xffa200) },
-            uColorDark: { value: new THREE.Color(0x8a1800) },
-            uColorDeep: { value: new THREE.Color(0x220200) }
-        },
-        vertexShader: `
-            varying vec3 vNormal;
-            varying vec3 vPosition;
-            varying vec3 vViewPosition;
+    const SUN_SURFACE_FRAGMENT = `
+      precision highp float;
+      varying vec2 vUv;
+      varying vec3 vNormal;
+      uniform float uTime;
+      uniform vec3 uColorCore;
+      uniform vec3 uColorMid;
+      uniform vec3 uColorDark;
+      uniform vec3 uColorRim;
 
-            void main() {
-                vNormal = normalize(normalMatrix * normal);
-                vPosition = position;
-                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                vViewPosition = -mvPosition.xyz;
-                gl_Position = projectionMatrix * mvPosition;
-            }
-        `,
-        fragmentShader: `
-            uniform float uTime;
-            uniform vec3 uColorCore;
-            uniform vec3 uColorMid;
-            uniform vec3 uColorDark;
-            uniform vec3 uColorDeep;
+      vec3 mod289(vec3 x) { return x - floor(x * (1.0/289.0)) * 289.0; }
+      vec2 mod289(vec2 x) { return x - floor(x * (1.0/289.0)) * 289.0; }
+      vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
 
-            varying vec3 vNormal;
-            varying vec3 vPosition;
-            varying vec3 vViewPosition;
+      float snoise(vec2 v) {
+        const vec4 C = vec4(0.211324865405187, 0.366025403784439,
+                           -0.577350269189626, 0.024390243902439);
+        vec2 i  = floor(v + dot(v, C.yy));
+        vec2 x0 = v - i + dot(i, C.xx);
+        vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+        vec4 x12 = x0.xyxy + C.xxzz;
+        x12.xy -= i1;
+        i = mod289(i);
+        vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
+        vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+        m = m*m; m = m*m;
+        vec3 x = 2.0 * fract(p * C.www) - 1.0;
+        vec3 h = abs(x) - 0.5;
+        vec3 ox = floor(x + 0.5);
+        vec3 a0 = x - ox;
+        m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
+        vec3 g;
+        g.x = a0.x * x0.x + h.x * x0.y;
+        g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+        return 130.0 * dot(m, g);
+      }
 
-            ${noiseGLSL}
+      float fbm(vec2 p) {
+        float value = 0.0, amplitude = 0.5, frequency = 1.0;
+        for (int i = 0; i < 6; i++) {
+          value += amplitude * snoise(p * frequency);
+          amplitude *= 0.5; frequency *= 2.0;
+        }
+        return value;
+      }
 
-            void main() {
-                vec3 p = vPosition * 4.0;
-                float t = uTime * 0.15;
-                
-                // Convective solar granules
-                float n1 = fbm(p + vec3(0.0, 0.0, t));
-                float n2 = fbm(p * 2.0 - vec3(t, 0.0, 0.0));
-                float plasma = smoothstep(-0.2, 0.8, n1 + n2 * 0.5);
+      void main() {
+        vec2 uv = vUv * 4.0;
+        float t = uTime * 0.05;
+        float n1 = fbm(uv + vec2(t, t*0.3));
+        float n2 = fbm(uv*2.0 - vec2(t*0.7, t*0.2));
+        float n3 = fbm(uv*0.5 + vec2(t*0.1, -t*0.15));
+        float spots = smoothstep(0.4, 0.6, n3) * smoothstep(0.2, 0.5, n2);
+        float surfacePattern = n1*0.5 + n2*0.3 + n3*0.2;
+        float fresnel = 1.0 - max(dot(vNormal, vec3(0.0,0.0,1.0)), 0.0);
+        float limbDarkening = 1.0 - fresnel * 0.6;
 
-                // Magnetic activity flare points
-                float spotNoise = snoise(vPosition * 1.5 + vec3(0.0, t * 0.05, 0.0));
-                float flareMask = smoothstep(0.55, 0.85, spotNoise);
+        vec3 color = mix(uColorDark, uColorMid, surfacePattern*0.5+0.5);
+        color = mix(color, uColorCore, n2*0.4+0.3);
+        color = mix(color, uColorDark*0.3, spots*0.7);
+        color *= limbDarkening;
+        color *= (1.2 + n1*0.3);
 
-                // Limb Darkening
-                vec3 normal = normalize(vNormal);
-                vec3 viewDir = normalize(vViewPosition);
-                float NdotV = max(dot(normal, viewDir), 0.0);
-                float limb = pow(NdotV, 0.7);
+        // Explicit rim color band so the edge doesn't wash out to white.
+        float rimBand = smoothstep(0.35, 1.0, fresnel);
+        color = mix(color, uColorRim, rimBand * 0.65);
 
-                // Color grading & 1.25x baseline brightness
-                vec3 baseColor = mix(uColorDeep, uColorDark, plasma);
-                baseColor = mix(baseColor, uColorMid, smoothstep(0.2, 0.9, plasma));
-                vec3 litColor = mix(baseColor, uColorCore, limb * 0.85 + flareMask * 1.5) * 1.25;
+        color = pow(color, vec3(0.9));
+        gl_FragColor = vec4(color, 1.0);
+      }
+    `;
 
-                gl_FragColor = vec4(litColor, 1.0);
-            }
-        `
-    });
-    const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial);
-    sunGroup.add(sunMesh);
+    // ─── Corona Shaders ──────────────────────────────────────────────────
+    const CORONA_VERTEX = `
+      varying vec3 vNormal;
+      varying vec3 vViewDir;
+      varying float vDist;
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        vViewDir = normalize(-mvPosition.xyz);
+        vDist = length(mvPosition.xyz);
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `;
 
-    // 2. Solar Prominences (Scaled 1.0x, 1.25x baseline brightness)
-    const prominenceMaterials: THREE.ShaderMaterial[] = [];
-    const numProminences = 6;
-    for (let i = 0; i < numProminences; i++) {
-        const torusGeo = new THREE.TorusGeometry(
-            (0.6 + Math.random() * 0.4), 
-            (0.08 + Math.random() * 0.04), 
-            16, 
-            64, 
-            Math.PI * (0.8 + Math.random() * 0.4)
-        );
+    const CORONA_FRAGMENT = `
+      precision highp float;
+      varying vec3 vNormal;
+      varying vec3 vViewDir;
+      varying float vDist;
+      uniform vec3 uColor;
+      uniform float uOpacity;
+      uniform float uTime;
+      uniform float uRadius;
 
-        const promMat = new THREE.ShaderMaterial({
-            uniforms: {
-                uTime: { value: 0 },
-                uOffset: { value: Math.random() * 100.0 }
-            },
-            vertexShader: `
-                uniform float uTime;
-                uniform float uOffset;
-                varying vec2 vUv;
-                varying vec3 vPos;
-                ${noiseGLSL}
+      float noise(vec2 p) {
+        return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453);
+      }
 
-                void main() {
-                    vUv = uv;
-                    vec3 p = position;
-                    // Magnetic loop turbulent displacement
-                    float disp = snoise(p * 3.0 + vec3(0.0, 0.0, uTime * 0.4 + uOffset)) * 0.15;
-                    p += normal * disp;
-                    vPos = p;
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
-                }
-            `,
-            fragmentShader: `
-                uniform float uTime;
-                uniform float uOffset;
-                varying vec2 vUv;
-                varying vec3 vPos;
-                ${noiseGLSL}
+      void main() {
+        float fresnel = 1.0 - abs(dot(vNormal, vViewDir));
+        fresnel = pow(fresnel, 2.0);
+        float radial = 1.0 - smoothstep(0.0, uRadius, vDist);
+        float t = uTime * 0.2;
+        float coronaNoise = noise(vNormal.xy*3.0+t)*0.5 +
+                           noise(vNormal.xy*7.0-t*0.5)*0.3 +
+                           noise(vNormal.xy*15.0+t*0.3)*0.2;
+        float corona = pow(fresnel, 1.5) * (0.8 + coronaNoise*0.4);
+        float alpha = corona * uOpacity * radial;
+        gl_FragColor = vec4(uColor * (1.0+fresnel), alpha);
+      }
+    `;
 
-                void main() {
-                    float noise = fbm(vPos * 5.0 - vec3(uTime * 0.5 + uOffset, 0.0, 0.0));
-                    float alpha = smoothstep(0.0, 0.5, sin(vUv.x * 3.14159)) * (noise * 0.5 + 0.5);
-                    
-                    vec3 col = mix(vec3(1.0, 0.15, 0.0), vec3(1.0, 0.7, 0.2), noise);
-                    col = mix(col, vec3(1.0), smoothstep(0.6, 1.0, noise));
-                    
-                    // Col multiplied by 2.5 (1.25x baseline brightness)
-                    gl_FragColor = vec4(col * 2.5, alpha * 0.85);
-                }
-            `,
-            transparent: true,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false,
-            side: THREE.DoubleSide
-        });
+    // ─── Procedural Flare Texture ────────────────────────────
+    function createProceduralFlareTexture(): THREE.CanvasTexture {
+      const size = 1024;
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return new THREE.CanvasTexture(canvas);
 
-        prominenceMaterials.push(promMat);
-        const promMesh = new THREE.Mesh(torusGeo, promMat);
+      const center = size / 2;
 
-        // Position on Sun's surface perimeter (r = 1.95)
-        const phi = Math.random() * Math.PI * 2;
-        const theta = Math.acos(2 * Math.random() - 1);
-        const r = 1.95;
-        promMesh.position.set(
-            r * Math.sin(theta) * Math.cos(phi),
-            r * Math.sin(theta) * Math.sin(phi),
-            r * Math.cos(theta)
-        );
-        promMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), promMesh.position.clone().normalize());
-        promMesh.rotateZ(Math.random() * Math.PI);
+      const gradient = ctx.createRadialGradient(center, center, 0, center, center, center);
+      gradient.addColorStop(0.0, 'rgba(255,255,240,1.0)');
+      gradient.addColorStop(0.1, 'rgba(255,240,200,0.8)');
+      gradient.addColorStop(0.3, 'rgba(255,200,100,0.35)');
+      gradient.addColorStop(0.6, 'rgba(255,100,50,0.08)');
+      gradient.addColorStop(1.0, 'rgba(0,0,0,0)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, size, size);
 
-        sunGroup.add(promMesh);
+      ctx.globalCompositeOperation = 'screen';
+
+      function drawRay(angle: number, len: number, width: number, alpha: number) {
+        if (!ctx) return;
+        const x = center + Math.cos(angle) * len;
+        const y = center + Math.sin(angle) * len;
+        const rayGrad = ctx.createLinearGradient(center, center, x, y);
+        rayGrad.addColorStop(0.0, `rgba(255,255,230,${alpha})`);
+        rayGrad.addColorStop(0.4, `rgba(255,190,80,${alpha * 0.35})`);
+        rayGrad.addColorStop(1.0, 'rgba(255,100,30,0)');
+        ctx.strokeStyle = rayGrad;
+        ctx.lineWidth = width;
+        ctx.beginPath();
+        ctx.moveTo(center, center);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      }
+
+      // 4 dominant spikes at roughly 90° apart, jittered
+      const dominantAngles = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
+      dominantAngles.forEach((baseAngle) => {
+        const angle = baseAngle + (Math.random() - 0.5) * 0.12;
+        const len = center * (0.85 + Math.random() * 0.15);
+        drawRay(angle, len, 3.0 + Math.random() * 1.5, 0.75);
+      });
+
+      // Irregular secondary flecks — random count, angle, length, width
+      const secondaryCount = 18 + Math.floor(Math.random() * 10);
+      for (let i = 0; i < secondaryCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const len = center * (0.2 + Math.random() * 0.45);
+        const width = 0.5 + Math.random() * 1.3;
+        const alpha = 0.15 + Math.random() * 0.25;
+        drawRay(angle, len, width, alpha);
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.needsUpdate = true;
+      return texture;
     }
 
-    // 3. Coronal Mass Ejection (CME) Volumetric Jet Shell (1.25x baseline brightness)
-    const cmeGeometry = new THREE.SphereGeometry(2.8, 64, 64);
-    const cmeMaterial = new THREE.ShaderMaterial({
-        uniforms: {
-            uTime: { value: 0 }
-        },
-        vertexShader: `
-            uniform float uTime;
-            varying vec3 vNormal;
-            varying vec3 vPosition;
-            varying vec3 vViewPosition;
-            ${noiseGLSL}
+    // ─── Build Sun Components ───────────────────────────────────────────
+    // Core
+    const sunUniforms = {
+      uTime: { value: 0 },
+      uColorCore: { value: new THREE.Color(0xfff2df) },
+      uColorMid:  { value: new THREE.Color(0xffc233) },
+      uColorDark: { value: new THREE.Color(0xff5500) },
+      uColorRim:  { value: new THREE.Color(0xff7a1a) },
+    };
 
-            void main() {
-                vNormal = normalize(normalMatrix * normal);
-                vec3 p = position;
-                
-                // Pulsing explosive expansion along noise channels
-                float blast = max(0.0, snoise(position * 1.5 + vec3(uTime * 0.3, 0.0, 0.0)));
-                p += normal * (blast * 0.8);
-                
-                vPosition = p;
-                vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
-                vViewPosition = -mvPosition.xyz;
-                gl_Position = projectionMatrix * mvPosition;
-            }
-        `,
-        fragmentShader: `
-            uniform float uTime;
-            varying vec3 vNormal;
-            varying vec3 vPosition;
-            varying vec3 vViewPosition;
-            ${noiseGLSL}
-
-            void main() {
-                vec3 viewDir = normalize(vViewPosition);
-                vec3 normal = normalize(vNormal);
-                float rim = 1.0 - max(dot(viewDir, normal), 0.0);
-                
-                float dynamicNoise = fbm(vPosition * 2.0 - vec3(0.0, uTime * 0.4, 0.0));
-                float cmeIntensity = pow(rim, 3.0) * smoothstep(0.1, 0.7, dynamicNoise);
-
-                vec3 cmeColor = mix(vec3(1.0, 0.2, 0.0), vec3(1.0, 0.8, 0.3), cmeIntensity);
-                // Color multiplied by 3.125 (1.25x brightness of original 2.5)
-                gl_FragColor = vec4(cmeColor * 3.125, cmeIntensity * 0.7);
-            }
-        `,
-        transparent: true,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-        side: THREE.BackSide
+    const sunMat = new THREE.ShaderMaterial({
+      vertexShader: SUN_SURFACE_VERTEX,
+      fragmentShader: SUN_SURFACE_FRAGMENT,
+      uniforms: sunUniforms,
     });
-    const cmeMesh = new THREE.Mesh(cmeGeometry, cmeMaterial);
-    sunGroup.add(cmeMesh);
+    const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(1.2, 128, 128), sunMat);
+    sunGroup.add(sunMesh);
 
-    // 4. Optical Flare Billboard (Camera-facing Corona Glow) (1.25x baseline brightness)
-    const coronaGeo = new THREE.PlaneGeometry(12.0, 12.0);
-    const coronaMat = new THREE.ShaderMaterial({
-        uniforms: {
-            uTime: { value: 0 },
-            uColor: { value: new THREE.Color(0xff6600) }
-        },
-        vertexShader: `
-            varying vec2 vUv;
-            void main() {
-                vUv = uv;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-            }
-        `,
-        fragmentShader: `
-            uniform float uTime;
-            uniform vec3 uColor;
-            varying vec2 vUv;
-            ${noiseGLSL}
+    // Sunlight illuminating Earth
+    const sunLight = new THREE.DirectionalLight(0xfff8f0, 1.2);
+    sunLight.position.set(0, 0, 0);
+    sunLight.target.position.set(-position.x, -position.y, -position.z);
+    sunGroup.add(sunLight);
+    sunGroup.add(sunLight.target);
 
-            void main() {
-                vec2 center = vUv - vec2(0.5);
-                float dist = length(center) * 2.0;
-                float angle = atan(center.y, center.x);
+    // Corona layers
+    const coronaConfigs = [
+      { r: 1.35, color: 0xffdd88, op: 0.4,  speed: 0.15 },
+      { r: 1.65, color: 0xffaa44, op: 0.25, speed: 0.10 },
+      { r: 2.1,  color: 0xff6600, op: 0.12, speed: 0.08 },
+      { r: 2.8,  color: 0xff3300, op: 0.06, speed: 0.05 },
+    ];
+    const coronaUniforms: Array<{ uniforms: { uTime: { value: number }; uColor: { value: THREE.Color }; uOpacity: { value: number }; uRadius: { value: number } }; speed: number }> = [];
 
-                // Turbulent ray streak modulation
-                float rays = fbm(vec3(cos(angle * 6.0), sin(angle * 6.0), uTime * 0.2)) * 0.3;
-                float intensity = 0.05 / (dist + rays * 0.1 + 0.02);
-                intensity *= smoothstep(1.2, 0.1, dist);
-
-                // Intensity multiplied by 2.5 (1.25x brightness of original 2.0)
-                gl_FragColor = vec4(uColor * intensity * 2.5, intensity);
-            }
-        `,
+    coronaConfigs.forEach(cfg => {
+      const u = {
+        uTime: { value: 0 },
+        uColor: { value: new THREE.Color(cfg.color) },
+        uOpacity: { value: cfg.op },
+        uRadius: { value: cfg.r * 2 },
+      };
+      coronaUniforms.push({ uniforms: u, speed: cfg.speed });
+      const mat = new THREE.ShaderMaterial({
+        vertexShader: CORONA_VERTEX,
+        fragmentShader: CORONA_FRAGMENT,
+        uniforms: u,
         transparent: true,
-        blending: THREE.AdditiveBlending,
         depthWrite: false,
-        side: THREE.DoubleSide
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending,
+      });
+      sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(cfg.r, 64, 64), mat));
     });
-    const coronaMesh = new THREE.Mesh(coronaGeo, coronaMat);
-    sunGroup.add(coronaMesh);
 
-    // 5. Directional Light for Illuminating Orbiting Planets (1.25x brightness: 5.0 * 1.25 = 6.25)
-    const sunLight = new THREE.DirectionalLight(0xfffaed, 6.25);
-    sunLight.position.copy(position);
-    sunLight.castShadow = true;
-    scene.add(sunLight);
+    // Flare billboard
+    const flareTex = createProceduralFlareTexture();
+    const flareMat = new THREE.MeshBasicMaterial({
+      map: flareTex,
+      transparent: true,
+      opacity: 0.15,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      color: 0xffddaa,
+    });
+    const flareMesh = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), flareMat);
+    sunGroup.add(flareMesh);
 
     scene.add(sunGroup);
 
     return {
         group: sunGroup,
         update: (time: number) => {
-            sunMaterial.uniforms.uTime.value = time;
-            cmeMaterial.uniforms.uTime.value = time;
-            coronaMat.uniforms.uTime.value = time;
-            for (let i = 0; i < prominenceMaterials.length; i++) {
-                prominenceMaterials[i].uniforms.uTime.value = time;
+            sunUniforms.uTime.value = time;
+            coronaUniforms.forEach(c => {
+                c.uniforms.uTime.value = time * c.speed;
+            });
+
+            const camera = scene.children.find(child => (child as any).isPerspectiveCamera || (child as any).isCamera) as THREE.Camera | undefined;
+            if (camera) {
+                flareMesh.quaternion.copy(camera.quaternion);
             }
 
-            // Billboard corona facing active camera
-            const camera = scene.getObjectByProperty('type', 'PerspectiveCamera');
-            if (camera) {
-                coronaMesh.quaternion.copy(camera.quaternion);
-            }
+            flareMat.opacity = 0.12 + Math.sin(time * 0.5) * 0.03;
         }
     };
 }
