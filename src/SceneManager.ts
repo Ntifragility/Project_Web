@@ -82,7 +82,7 @@ export class SceneManager {
         createGalaxy(this.scene);
 
         // Add the ultra-realistic Shader-based Sun in the background
-        const sunPosition = new THREE.Vector3(240, 140, 240);
+        const sunPosition = new THREE.Vector3(120, 70, 120);
         this.sunInstance = createRealisticSun(this.scene, sunPosition);
 
         this.earthGroup = new THREE.Group();
