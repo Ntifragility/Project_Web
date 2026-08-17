@@ -751,9 +751,10 @@ a {
     margin: 0 0 0.25rem 0;
     letter-spacing: -0.01em;
     font-family: var(--font-heading);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    word-break: break-word;
 }
 
 .tech-card-meta {
