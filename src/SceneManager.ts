@@ -13,7 +13,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'; // th
 import { createGalaxy } from '@/components/3D/Galaxy'; // the galaxy component
 import { createEarth } from '@/components/3D/Earth'; // the earth component
 import { createAtmosphere } from '@/components/3D/Atmosphere'; // the atmosphere component
-import { createSun } from '@/components/3D/Sun'; // the sun component
+import { createRealisticSun, RealisticSunInstance } from '@/components/3D/Sun'; // the realistic sun component
 
 /**
  * SceneManager orchestrates the 3D environment.
@@ -28,6 +28,8 @@ export class SceneManager {
     private earthGroup: THREE.Group; // the earth group
     private earth: THREE.Mesh; // the earth
     private clouds: THREE.Mesh; // the clouds
+    private sunInstance: RealisticSunInstance | null = null; // the realistic sun instance
+    private clock = new THREE.Clock(); // the clock for shader animation time
 
     /**
      * Initializes the 3D world.
@@ -79,9 +81,9 @@ export class SceneManager {
         // 4. Build Universe
         createGalaxy(this.scene);
 
-        // Add the Sun representing the light source in the background
+        // Add the ultra-realistic Shader-based Sun in the background
         const sunPosition = new THREE.Vector3(12, 7, 12);
-        createSun(this.scene, sunPosition);
+        this.sunInstance = createRealisticSun(this.scene, sunPosition);
 
         this.earthGroup = new THREE.Group();
         this.earthGroup.rotation.z = 23.5 * Math.PI / 180;
@@ -95,10 +97,7 @@ export class SceneManager {
         this.scene.add(atmosphere);
 
         // 5. Setup Lighting
-        const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
-        sunLight.position.copy(sunPosition); // Align light direction with Sun mesh visual position
-        this.scene.add(sunLight);
-
+        // Note: The directional Sun light is created and configured inside createRealisticSun
         const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
         this.scene.add(ambientLight);
 
@@ -122,6 +121,11 @@ export class SceneManager {
 
     animate() { // handles animation
         requestAnimationFrame(this.animate.bind(this));
+
+        const elapsedTime = this.clock.getElapsedTime();
+        if (this.sunInstance) {
+            this.sunInstance.update(elapsedTime);
+        }
 
         this.earth.rotation.y += 0.001;
         this.clouds.rotation.y += 0.0013;
