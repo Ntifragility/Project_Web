@@ -1,9 +1,11 @@
 /**
  * @file AdminController.ts
- * @description Controller managing the browser-based folder upload and Supabase synchronization.
+ * @description Master router and controller for the Admin Suite (#admin, #admin/manage, #admin/edit/:id, #admin/new, #admin/upload).
  */
 
-import { renderAdminView } from '@/views/AdminView';
+import { renderAdminDashboardHub, renderAdminUploadView } from '@/views/AdminView';
+import { AdminManageController } from './AdminManageController';
+import { AdminEditorController } from './AdminEditorController';
 import { vaultService, ArticleRecord } from '@/services/VaultService';
 import { isSupabaseConfigured } from '@/services/SupabaseClient';
 
@@ -17,19 +19,52 @@ interface DetectedFile {
 export class AdminController {
     private container: HTMLElement;
     private cleanups: (() => void)[] = [];
+    private manageController: AdminManageController;
+    private editorController: AdminEditorController;
     private detectedFiles: DetectedFile[] = [];
 
     constructor(container: HTMLElement) {
         this.container = container;
+        this.manageController = new AdminManageController(this.container);
+        this.editorController = new AdminEditorController(this.container);
     }
 
-    public render(): void {
+    public async render(subRoute: string = ''): Promise<void> {
         this.destroy();
-        this.container.innerHTML = renderAdminView();
-        this.bindEvents();
+
+        // Route dispatcher
+        if (subRoute === 'manage' || subRoute.startsWith('manage/')) {
+            await this.manageController.render();
+            return;
+        }
+
+        if (subRoute === 'new') {
+            await this.editorController.render();
+            return;
+        }
+
+        if (subRoute.startsWith('edit/')) {
+            const articleId = decodeURIComponent(subRoute.replace(/^edit\//, ''));
+            await this.editorController.render(articleId);
+            return;
+        }
+
+        if (subRoute === 'upload') {
+            this.container.innerHTML = renderAdminUploadView();
+            this.bindUploadEvents();
+            return;
+        }
+
+        // Default: Admin Dashboard Hub (#admin)
+        try {
+            const articles = await vaultService.fetchArticles();
+            this.container.innerHTML = renderAdminDashboardHub(articles.length);
+        } catch {
+            this.container.innerHTML = renderAdminDashboardHub(0);
+        }
     }
 
-    private bindEvents(): void {
+    private bindUploadEvents(): void {
         const browseBtn = this.container.querySelector<HTMLButtonElement>('#admin-browse-btn');
         const folderInput = this.container.querySelector<HTMLInputElement>('#admin-folder-input');
         const dropzone = this.container.querySelector<HTMLElement>('#admin-dropzone');
@@ -106,15 +141,12 @@ export class AdminController {
         this.detectedFiles = [];
 
         for (const file of files) {
-            // webkitRelativePath gives the relative folder hierarchy: e.g. "ready/Induction_motors/PF.md"
             let relativePath = file.webkitRelativePath || file.name;
 
-            // Strip out top-level wrapper folder names like "ready/" if uploaded as ready directory
             if (relativePath.startsWith('ready/')) {
                 relativePath = relativePath.substring(6);
             }
 
-            // Skip hidden or config files
             if (relativePath.includes('/.obsidian/') || relativePath.includes('/.git/')) {
                 continue;
             }
@@ -152,7 +184,7 @@ export class AdminController {
 
     private async startCloudSync(): Promise<void> {
         if (!isSupabaseConfigured()) {
-            alert('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+            alert('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local.');
             return;
         }
 
@@ -181,11 +213,9 @@ export class AdminController {
 
         for (const item of this.detectedFiles) {
             try {
-                // 1. Upload File to Supabase Storage
                 log(`Uploading <code>${item.relativePath}</code>...`, 'info');
                 await vaultService.uploadFile(item.relativePath, item.file);
 
-                // 2. If Markdown file, parse and upsert metadata to Database
                 if (item.isMarkdown) {
                     const text = await item.file.text();
                     const article = this.extractMetadata(item.relativePath, text, item.category);
@@ -234,7 +264,6 @@ export class AdminController {
         const subtitle = frontMatter.subtitle || '';
         const date = frontMatter.date || new Date().toISOString().split('T')[0];
 
-        // Image derivation
         let image = frontMatter.image || '';
         if (!image) {
             const imgMatch = body.match(/!\[\[([^\]|]+)/);
@@ -261,5 +290,7 @@ export class AdminController {
     public destroy(): void {
         this.cleanups.forEach(fn => fn());
         this.cleanups = [];
+        this.manageController.destroy();
+        this.editorController.destroy();
     }
 }

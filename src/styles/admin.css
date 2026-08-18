@@ -1,8 +1,11 @@
 /**
  * @file admin.css
- * @description Styles for the Web-based Folder Uploader & Cloud Synchronizer.
+ * @description Comprehensive styles for Vault Admin Suite (Dashboard Hub, Article Manager, Split-Pane Markdown Editor).
  */
 
+/* =========================================================================
+   1. Base Admin Container & Panel Card
+   ========================================================================= */
 .admin-view-wrapper {
     min-height: 100vh;
     width: 100%;
@@ -10,9 +13,10 @@
     align-items: center;
     justify-content: center;
     padding: 3rem 1.5rem;
-    background: radial-gradient(circle at 50% 20%, rgba(77, 153, 255, 0.08) 0%, rgba(10, 11, 14, 0.95) 70%);
+    background: radial-gradient(circle at 50% 15%, rgba(77, 153, 255, 0.08) 0%, rgba(10, 11, 14, 0.98) 70%);
     box-sizing: border-box;
     font-family: var(--font-body, system-ui, -apple-system, sans-serif);
+    color: #e2e8f0;
 }
 
 .admin-panel-card {
@@ -30,6 +34,15 @@
     gap: 1.75rem;
 }
 
+.admin-panel-card.admin-dashboard-card {
+    max-width: 960px;
+}
+
+.admin-panel-card.admin-manage-card {
+    max-width: 1100px;
+}
+
+/* Header */
 .admin-panel-header {
     display: flex;
     flex-direction: column;
@@ -40,6 +53,34 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.admin-nav-breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.admin-breadcrumb-link {
+    color: #4d99ff;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.admin-breadcrumb-link:hover {
+    color: #80b3ff;
+    text-decoration: underline;
+}
+
+.admin-breadcrumb-sep {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.admin-breadcrumb-current {
+    color: #ffffff;
+    font-weight: 600;
 }
 
 .admin-badge {
@@ -103,94 +144,779 @@
 
 .admin-subtitle {
     font-size: 0.95rem;
-    color: rgba(255, 255, 255, 0.65);
     line-height: 1.5;
+    color: rgba(255, 255, 255, 0.65);
     margin: 0;
 }
 
+/* Alert Banner */
 .admin-alert-banner {
     display: flex;
     gap: 1rem;
+    padding: 1.25rem;
     background: rgba(245, 158, 11, 0.1);
     border: 1px solid rgba(245, 158, 11, 0.3);
     border-radius: 12px;
-    padding: 1rem 1.25rem;
     color: #fbbf24;
 }
 
-.admin-alert-banner .alert-icon {
-    font-size: 1.5rem;
+.admin-alert-banner .alert-text strong {
+    display: block;
+    margin-bottom: 0.25rem;
 }
 
-.admin-alert-banner .alert-text {
+.admin-alert-banner .alert-text p {
+    margin: 0.25rem 0;
     font-size: 0.85rem;
-    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .admin-alert-banner pre {
     background: rgba(0, 0, 0, 0.4);
     padding: 0.5rem 0.75rem;
     border-radius: 6px;
-    margin-top: 0.5rem;
-    color: #e2e8f0;
+    font-size: 0.8rem;
+    overflow-x: auto;
+}
+
+/* Buttons */
+.admin-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.4rem;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    border: none;
+    font-family: inherit;
+}
+
+.admin-action-btn.primary {
+    background: linear-gradient(135deg, #4d99ff 0%, #0066ff 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 102, 255, 0.35);
+}
+
+.admin-action-btn.primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #66a8ff 0%, #1a75ff 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 102, 255, 0.45);
+}
+
+.admin-action-btn.secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.admin-action-btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.admin-action-btn.danger {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+.admin-action-btn.danger:hover {
+    background: #dc2626;
+}
+
+.admin-action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.admin-panel-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+/* =========================================================================
+   2. Admin Dashboard Hub Grid (#admin)
+   ========================================================================= */
+.admin-hub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin: 0.5rem 0;
+}
+
+.admin-hub-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-hub-card:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(77, 153, 255, 0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+.admin-hub-card.highlight {
+    border-color: rgba(0, 200, 83, 0.3);
+    background: linear-gradient(180deg, rgba(0, 200, 83, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%);
+}
+
+.admin-hub-card.highlight:hover {
+    border-color: rgba(0, 200, 83, 0.6);
+    box-shadow: 0 12px 30px rgba(0, 200, 83, 0.15);
+}
+
+.admin-hub-card-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-hub-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.admin-hub-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-hub-card-header h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+}
+
+.admin-hub-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(77, 153, 255, 0.15);
+    color: #4d99ff;
+    border: 1px solid rgba(77, 153, 255, 0.3);
+}
+
+.admin-hub-badge.green {
+    background: rgba(0, 200, 83, 0.15);
+    color: #00c853;
+    border-color: rgba(0, 200, 83, 0.3);
+}
+
+.admin-hub-badge.amber {
+    background: rgba(255, 170, 0, 0.15);
+    color: #ffaa00;
+    border-color: rgba(255, 170, 0, 0.3);
+}
+
+.admin-hub-card p {
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.65);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.admin-hub-link-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #4d99ff;
+    margin-top: auto;
+    padding-top: 0.5rem;
+}
+
+/* =========================================================================
+   3. Article Management Table (#admin/manage)
+   ========================================================================= */
+.admin-manage-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.admin-filters-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.admin-search-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+}
+
+.admin-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.4);
+    pointer-events: none;
+}
+
+.admin-search-input {
+    width: 100%;
+    padding: 0.6rem 0.8rem 0.6rem 2.4rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.admin-search-input:focus {
+    border-color: #4d99ff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.admin-select {
+    padding: 0.6rem 1rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+}
+
+.admin-select option {
+    background: #1a1e29;
+    color: #ffffff;
+}
+
+.admin-article-count {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 500;
+}
+
+.admin-table-container {
+    overflow-x: auto;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.admin-articles-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+.admin-articles-table thead tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.admin-articles-table th {
+    padding: 0.9rem 1.2rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+.admin-articles-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.15s ease;
+}
+
+.admin-articles-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-articles-table td {
+    padding: 1rem 1.2rem;
+    vertical-align: middle;
+}
+
+.admin-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.admin-article-name {
+    font-weight: 600;
+    color: #ffffff;
+    font-size: 0.95rem;
+}
+
+.admin-article-sub {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.admin-article-path {
+    font-size: 0.75rem;
+    color: #4d99ff;
     font-family: monospace;
 }
 
-.admin-dropzone {
-    border: 2px dashed rgba(77, 153, 255, 0.4);
-    background: rgba(77, 153, 255, 0.03);
-    border-radius: 16px;
-    padding: 2.5rem 1.5rem;
+.admin-category-badge {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.admin-date-text {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85rem;
+}
+
+.admin-actions-group {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.admin-btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.admin-btn-icon:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    transform: scale(1.05);
+}
+
+.admin-btn-icon.edit:hover {
+    background: rgba(77, 153, 255, 0.2);
+    color: #4d99ff;
+    border-color: #4d99ff;
+}
+
+.admin-btn-icon.delete:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border-color: #ef4444;
+}
+
+.admin-table-empty {
     text-align: center;
+    padding: 3rem 1rem !important;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* =========================================================================
+   4. Split-Pane Markdown Editor (#admin/new, #admin/edit/:id)
+   ========================================================================= */
+.admin-editor-wrapper {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #0d0f14;
+    overflow: hidden;
+    font-family: var(--font-body, system-ui, -apple-system, sans-serif);
+    color: #e2e8f0;
+}
+
+/* Editor Topbar */
+.admin-editor-topbar {
+    height: 56px;
+    background: #141721;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.25rem;
+    flex-shrink: 0;
+    z-index: 10;
+}
+
+.admin-editor-topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.admin-topbar-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.2s ease;
+}
+
+.admin-topbar-back-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.admin-topbar-divider {
+    width: 1px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.admin-editor-mode-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    background: rgba(77, 153, 255, 0.15);
+    color: #4d99ff;
+    border: 1px solid rgba(77, 153, 255, 0.3);
+}
+
+.admin-editor-file-badge {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #ffffff;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-editor-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.admin-topbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.85rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.admin-topbar-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+}
+
+.admin-topbar-btn.active {
+    background: rgba(77, 153, 255, 0.2);
+    color: #4d99ff;
+    border-color: #4d99ff;
+}
+
+.admin-kbd {
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.7rem;
+    font-family: monospace;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    margin-left: 0.3rem;
+}
+
+/* Collapsible Metadata Bar */
+.admin-metadata-bar {
+    background: #171b26;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 1rem 1.25rem;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+    max-height: 300px;
+}
+
+.admin-metadata-bar.collapsed {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.metadata-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.metadata-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.metadata-field label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.admin-input {
+    width: 100%;
+    padding: 0.55rem 0.8rem;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 0.88rem;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+}
+
+.admin-input:focus {
+    border-color: #4d99ff;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.category-input-group,
+.image-input-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.category-input-group select {
+    flex: 1;
+}
+
+.category-input-group input {
+    flex: 1.2;
+}
+
+.image-input-group input {
+    flex: 1;
+}
+
+.admin-upload-image-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.8rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #ffffff;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.admin-upload-image-label:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Split-Pane Workspace */
+.admin-split-workspace {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    background: #0d0f14;
+}
+
+.editor-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.raw-editor-pane {
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    background: #11131a;
+}
+
+.preview-editor-pane {
+    background: #0d0f14;
+}
+
+.editor-pane-header {
+    height: 38px;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.5);
+    flex-shrink: 0;
+}
+
+.editor-pane-title {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.editor-pane-stats,
+.editor-pane-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.editor-textarea-container {
+    flex: 1;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-raw-textarea {
+    width: 100%;
+    height: 100%;
+    padding: 1.25rem 1.5rem;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #e2e8f0;
+    font-family: 'Fira Code', 'Cascadia Code', Consolas, Monaco, monospace;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    resize: none;
+    box-sizing: border-box;
+    white-space: pre-wrap;
+    word-break: break-word;
+    tab-size: 2;
+}
+
+.admin-raw-textarea::placeholder {
+    color: rgba(255, 255, 255, 0.25);
+}
+
+.editor-preview-scroll-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem 2.5rem;
+    box-sizing: border-box;
+}
+
+.editor-preview-scroll-container .markdown-body {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* =========================================================================
+   5. Dropzone & Log Terminal (Folder Bulk Upload)
+   ========================================================================= */
+.admin-dropzone {
+    border: 2px dashed rgba(77, 153, 255, 0.35);
+    border-radius: 16px;
+    padding: 3rem 1.5rem;
+    text-align: center;
+    background: rgba(77, 153, 255, 0.02);
     transition: all 0.25s ease;
     cursor: pointer;
 }
 
-.admin-dropzone:hover,
 .admin-dropzone.drag-over {
-    border-color: #4D99FF;
+    border-color: #4d99ff;
     background: rgba(77, 153, 255, 0.08);
-    transform: translateY(-2px);
+    transform: scale(1.01);
 }
 
-.dropzone-icon {
-    margin-bottom: 1rem;
+.dropzone-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .dropzone-title {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     font-weight: 600;
     color: #ffffff;
-    margin: 0 0 0.5rem 0;
+    margin: 0;
 }
 
 .dropzone-desc {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.5);
-    margin: 0 0 1.25rem 0;
+    margin: 0;
 }
 
 .admin-select-btn {
-    background: #4D99FF;
-    color: #0d1117;
-    font-weight: 600;
-    font-size: 0.9rem;
-    padding: 0.65rem 1.4rem;
+    margin-top: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 8px;
-    border: none;
+    color: #ffffff;
+    font-weight: 500;
+    font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .admin-select-btn:hover:not(:disabled) {
-    background: #6baaff;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 15px rgba(77, 153, 255, 0.4);
-}
-
-.admin-select-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .admin-upload-status {
@@ -204,13 +930,13 @@
     justify-content: space-between;
     font-size: 0.85rem;
     font-weight: 600;
-    color: #e2e8f0;
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .status-progress-bar {
     width: 100%;
     height: 8px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     border-radius: 999px;
     overflow: hidden;
 }
@@ -218,113 +944,138 @@
 .status-progress-fill {
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, #4D99FF, #38bdf8);
-    border-radius: 999px;
+    background: linear-gradient(90deg, #4d99ff, #00c853);
     transition: width 0.2s ease;
 }
 
 .admin-terminal-log {
-    background: rgba(10, 12, 16, 0.9);
+    background: #0a0c10;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 10px;
     padding: 1rem;
-    max-height: 180px;
+    max-height: 200px;
     overflow-y: auto;
-    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-family: monospace;
     font-size: 0.8rem;
-    line-height: 1.6;
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
 }
 
-.log-entry {
-    color: rgba(255, 255, 255, 0.75);
-}
+.log-entry.info { color: #94a3b8; }
+.log-entry.success { color: #10b981; }
+.log-entry.error { color: #ef4444; }
+.log-entry.prompt { color: #f59e0b; font-weight: 600; }
 
-.log-entry.info {
-    color: #94a3b8;
-}
-
-.log-entry.prompt {
-    color: #38bdf8;
-}
-
-.log-entry.success {
-    color: #34d399;
-}
-
-.log-entry.error {
-    color: #f87171;
-}
-
-.log-entry code {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 0.15rem 0.35rem;
-    border-radius: 4px;
-}
-
-.admin-panel-footer {
+/* =========================================================================
+   6. Modals & Toasts
+   ========================================================================= */
+.admin-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
-    gap: 1rem;
+    justify-content: center;
+    z-index: 9999;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.admin-modal-card {
+    background: #181b24;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 440px;
+    width: 100%;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.admin-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.admin-modal-icon.warning {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.15);
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+}
+
+.admin-modal-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.admin-modal-body {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+.admin-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
     margin-top: 0.5rem;
 }
 
-.admin-action-btn {
-    display: inline-flex;
+/* Toast */
+.admin-toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: #181b24;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    padding: 0.85rem 1.25rem;
+    border-radius: 10px;
+    display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-    font-weight: 600;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    border: none;
+    gap: 0.75rem;
+    z-index: 10000;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.admin-action-btn.primary {
-    background: #4D99FF;
-    color: #0a0e17;
+.admin-toast.show {
+    transform: translateY(0);
+    opacity: 1;
 }
 
-.admin-action-btn.primary:hover:not(:disabled) {
-    background: #70adff;
-    box-shadow: 0 4px 15px rgba(77, 153, 255, 0.4);
-}
+.admin-toast.success { border-color: #10b981; }
+.admin-toast.success .admin-toast-icon { color: #10b981; }
+.admin-toast.error { border-color: #ef4444; }
+.admin-toast.error .admin-toast-icon { color: #ef4444; }
+.admin-toast.info { border-color: #4d99ff; }
+.admin-toast.info .admin-toast-icon { color: #4d99ff; }
 
-.admin-action-btn.secondary {
-    background: rgba(255, 255, 255, 0.08);
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.admin-action-btn.secondary:hover {
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.vault-sync-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.45rem 0.9rem;
-    border-radius: 8px;
-    background: rgba(77, 153, 255, 0.08);
-    border: 1px solid rgba(77, 153, 255, 0.25);
-    color: #4D99FF;
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-
-.vault-sync-link:hover {
-    background: rgba(77, 153, 255, 0.18);
-    border-color: #4D99FF;
-    color: #ffffff;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(77, 153, 255, 0.2);
+/* Responsive adjustments */
+@media (max-width: 900px) {
+    .admin-split-workspace {
+        flex-direction: column;
+    }
+    .raw-editor-pane {
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        height: 50%;
+    }
+    .preview-editor-pane {
+        height: 50%;
+    }
 }

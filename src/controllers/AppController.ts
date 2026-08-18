@@ -166,9 +166,10 @@ export class AppController {
         const contentId = appState.getContentId();
 
         if (hash === '#admin' || hash.startsWith('#admin/')) {
-            // Admin Cloud Synchronizer Mode
+            // Admin Hub & Sub-Route Mode
             this.postController.hide();
-            this.adminController.render();
+            const subRoute = hash.replace(/^#admin\/?/, '');
+            this.adminController.render(subRoute);
 
             if (this.contentWrapper) this.contentWrapper.style.display = 'none';
             if (this.canvasContainer) this.canvasContainer.classList.add('fade-out');

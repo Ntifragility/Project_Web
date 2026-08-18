@@ -70,6 +70,47 @@ export class VaultService {
     }
 
     /**
+     * Fetch raw markdown content for an article from Supabase Storage or local vault fallback.
+     */
+    public async fetchMarkdownContent(markdownPath: string): Promise<string> {
+        if (!markdownPath) return '';
+
+        // If path is a full URL
+        if (markdownPath.startsWith('http://') || markdownPath.startsWith('https://')) {
+            const resp = await fetch(markdownPath);
+            if (resp.ok) return await resp.text();
+            throw new Error(`Failed to fetch markdown from ${markdownPath} (${resp.status})`);
+        }
+
+        // If Supabase is configured and it's a storage path
+        if (isSupabaseConfigured() && !markdownPath.startsWith('/vault/ready/')) {
+            const cleanPath = markdownPath.replace(/^\/+/, '');
+            const { data, error } = await supabase.storage.from('vault').download(cleanPath);
+            if (!error && data) {
+                return await data.text();
+            }
+        }
+
+        // Try standard local fetch
+        const targetUrl = markdownPath.startsWith('/') ? markdownPath : `/vault/ready/${markdownPath.replace(/^\/+/, '')}`;
+        const localResp = await fetch(targetUrl);
+        if (localResp.ok) {
+            return await localResp.text();
+        }
+
+        // If still not found and Supabase is configured, try storage public URL
+        if (isSupabaseConfigured()) {
+            const cleanPath = markdownPath.replace(/^\/vault\/ready\//, '').replace(/^\/+/, '');
+            const { data, error } = await supabase.storage.from('vault').download(cleanPath);
+            if (!error && data) {
+                return await data.text();
+            }
+        }
+
+        throw new Error(`Could not load markdown content for: ${markdownPath}`);
+    }
+
+    /**
      * Resolves the accessible URL for a markdown or media file.
      * If the path is already a full URL or absolute local path, returns as is.
      * If Supabase is configured and path is relative, resolves via Supabase Storage.
