@@ -1,26 +1,27 @@
 /**
  * @file Sun.ts
- * @description Brutal Sun with customizable 4-point star crown (4 puntas), surface noise, and corona layers.
+ * @description Brutal Sun with customizable Crown Width (Corona) and 4 Puntas Star Flare.
  */
 import * as THREE from 'three';
 
 // =========================================================================
-// 🎛️ CONTROLS FOR SUN & 4-POINT STAR CROWN (4 PUNTAS):
+// 🎛️ CONTROLS FOR SUN, CROWN & 4 PUNTAS:
 //
-// 1. Sun scale/size:
+// 1. Sun Core Scale:
 export const SUN_SCALE = 1.75;
 
 // 2. Sunlight illuminating Earth:
 export const EARTH_SUNLIGHT_INTENSITY = 1.2;
 
-// 3. 🌟 4-Point Star Crown (4 Puntas) Controls:
-export const CROWN_4_PUNTAS_SIZE = 14.0;      // Total size of the star (Try 8.0 to 22.0)
-export const CROWN_4_PUNTAS_WIDTH = 25.0;     // Beam thickness/width at base (Try 5.0 to 60.0)
-export const CROWN_4_PUNTAS_OPACITY = 0.70;  // Glow opacity of the 4 rays (Try 0.3 to 1.0)
-export const CROWN_4_PUNTAS_COLOR = 0xff9922;// Color of the 4 rays (e.g. 0xff8800, 0xffaa33)
+// 3. 👑 CROWN WIDTH & GLOW (The glowing outer crown/corona around the sun):
+export const CROWN_WIDTH = 2.0;              // Thickness/reach of the outer glowing crown (Try 1.3 for tight, 2.5 for wide, 4.0 for massive)
+export const CROWN_OPACITY = 0.85;           // Brightness of the crown glow (Try 0.4 to 1.5)
 
-// 4. ⭕ Circular Crown Halo Ring Width around Sun:
-export const CROWN_HALO_WIDTH = 1.65;         // Outer radius of circular crown (Try 1.3 to 2.2)
+// 4. 🌟 4 PUNTAS (Star flare points):
+export const FLARE_4_PUNTAS_SIZE = 14.0;     // Total length/size of the 4 puntas (Try 8.0 to 22.0)
+export const FLARE_4_PUNTAS_BEAM_WIDTH = 25.0;// Width of each punta beam at base (Try 5.0 to 50.0)
+export const FLARE_4_PUNTAS_OPACITY = 0.70;  // Glow of the 4 puntas (Try 0.3 to 1.0)
+export const FLARE_4_PUNTAS_COLOR = 0xff9922;// Color of the 4 puntas (e.g. 0xff8800, 0xffaa33)
 // =========================================================================
 
 export interface RealisticSunInstance {
@@ -154,7 +155,7 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
       }
     `;
 
-    // ─── 4-Point Star Crown (4 Puntas) Texture Generator ─────────────────
+    // ─── 4 Puntas Star Flare Generator ───────────────────────────────────
     function create4PointStarTexture(): THREE.CanvasTexture {
         const size = 1024;
         const canvas = document.createElement('canvas');
@@ -164,7 +165,7 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
 
         const center = size / 2;
 
-        // Central Radial Crown Glow
+        // Central Radial Glow
         const gradient = ctx.createRadialGradient(center, center, 0, center, center, center);
         gradient.addColorStop(0.0, 'rgba(255,255,245,1.0)');
         gradient.addColorStop(0.12, 'rgba(255,210,80,0.85)');
@@ -176,14 +177,12 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
 
         ctx.globalCompositeOperation = 'screen';
 
-        // Helper function to draw tapered 4-point diamond star spikes
         function drawTaperedSpike(angle: number, length: number, baseWidth: number, alpha: number) {
             if (!ctx) return;
             ctx.save();
             ctx.translate(center, center);
             ctx.rotate(angle);
 
-            // Tapered diamond polygon
             ctx.beginPath();
             ctx.moveTo(0, -baseWidth / 2);
             ctx.lineTo(length, 0);
@@ -199,7 +198,6 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
             ctx.fillStyle = rayGrad;
             ctx.fill();
 
-            // Core bright thin center streak
             ctx.beginPath();
             ctx.moveTo(0, 0);
             ctx.lineTo(length * 0.95, 0);
@@ -210,18 +208,16 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
             ctx.restore();
         }
 
-        // 🌟 Draw the 4 Dominant Points (4 Puntas at 0°, 90°, 180°, 270°)
+        // 🌟 4 Puntas (0°, 90°, 180°, 270°)
         const dominantAngles = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
         const spikeLength = center * 0.95;
 
         dominantAngles.forEach((angle) => {
-            // Main wide tapered spike (controlled by CROWN_4_PUNTAS_WIDTH)
-            drawTaperedSpike(angle, spikeLength, CROWN_4_PUNTAS_WIDTH, 0.95);
-            // Softer outer glow ray
-            drawTaperedSpike(angle, spikeLength * 0.8, CROWN_4_PUNTAS_WIDTH * 2.0, 0.40);
+            drawTaperedSpike(angle, spikeLength, FLARE_4_PUNTAS_BEAM_WIDTH, 0.95);
+            drawTaperedSpike(angle, spikeLength * 0.8, FLARE_4_PUNTAS_BEAM_WIDTH * 2.0, 0.40);
         });
 
-        // Subtle secondary micro-rays
+        // Subtle micro-rays
         for (let i = 0; i < 16; i++) {
             const angle = (i / 16) * Math.PI * 2 + (Math.random() - 0.5) * 0.1;
             const len = center * (0.25 + Math.random() * 0.35);
@@ -258,12 +254,12 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
     scene.add(sunLight);
     scene.add(sunLight.target);
 
-    // 4 Corona shells
+    // 👑 4 Layered Corona Crown Shells scaling with CROWN_WIDTH
     const coronaConfigs = [
-        { r: 1.30, color: 0xffdd88, op: 0.60, speed: 0.15 },
-        { r: CROWN_HALO_WIDTH, color: 0xffaa44, op: 0.45, speed: 0.10 },
-        { r: CROWN_HALO_WIDTH * 1.25, color: 0xff6600, op: 0.30, speed: 0.08 },
-        { r: CROWN_HALO_WIDTH * 1.65, color: 0xff3300, op: 0.15, speed: 0.05 },
+        { r: 1.2 + (CROWN_WIDTH - 1.0) * 0.20, color: 0xffdd88, op: 0.60 * CROWN_OPACITY, speed: 0.15 },
+        { r: 1.2 + (CROWN_WIDTH - 1.0) * 0.50, color: 0xffaa44, op: 0.45 * CROWN_OPACITY, speed: 0.10 },
+        { r: 1.2 + (CROWN_WIDTH - 1.0) * 0.90, color: 0xff6600, op: 0.30 * CROWN_OPACITY, speed: 0.08 },
+        { r: 1.2 + (CROWN_WIDTH - 1.0) * 1.40, color: 0xff3300, op: 0.15 * CROWN_OPACITY, speed: 0.05 },
     ];
     const coronaUniforms: Array<{ uniforms: { uTime: { value: number }; uColor: { value: THREE.Color }; uOpacity: { value: number } }; speed: number }> = [];
 
@@ -286,18 +282,18 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
         sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(cfg.r, 64, 64), mat));
     });
 
-    // 🌟 4-Point Star Crown Billboard (4 Puntas)
+    // 🌟 4 Puntas Star Flare Billboard
     const starTex = create4PointStarTexture();
     const starMat = new THREE.MeshBasicMaterial({
         map: starTex,
         transparent: true,
-        opacity: CROWN_4_PUNTAS_OPACITY,
+        opacity: FLARE_4_PUNTAS_OPACITY,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
-        color: CROWN_4_PUNTAS_COLOR,
+        color: FLARE_4_PUNTAS_COLOR,
     });
     const starMesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(CROWN_4_PUNTAS_SIZE, CROWN_4_PUNTAS_SIZE),
+        new THREE.PlaneGeometry(FLARE_4_PUNTAS_SIZE, FLARE_4_PUNTAS_SIZE),
         starMat
     );
     sunGroup.add(starMesh);
@@ -312,13 +308,11 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
                 c.uniforms.uTime.value = time * c.speed;
             });
 
-            // Always face camera directly so the 4 puntas are perfectly perpendicular
             if (camera) {
                 starMesh.lookAt(camera.position);
             }
 
-            // Gentle pulsating star flare
-            starMat.opacity = CROWN_4_PUNTAS_OPACITY + Math.sin(time * 0.6) * 0.05;
+            starMat.opacity = FLARE_4_PUNTAS_OPACITY + Math.sin(time * 0.6) * 0.05;
         }
     };
 }
