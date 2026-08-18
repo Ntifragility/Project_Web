@@ -10,10 +10,11 @@ export interface EditorInitialData {
     article: Partial<ArticleRecord>;
     rawMarkdown: string;
     categories: string[];
+    userEmail?: string;
 }
 
 export function renderAdminEditorView(data: EditorInitialData): string {
-    const { isNew, article, rawMarkdown, categories } = data;
+    const { isNew, article, rawMarkdown, categories, userEmail } = data;
 
     const categoryOptions = categories
         .map(cat => `<option value="${cat}" ${article.category === cat ? 'selected' : ''}>${cat}</option>`)
@@ -43,6 +44,12 @@ export function renderAdminEditorView(data: EditorInitialData): string {
                 </div>
 
                 <div class="admin-editor-topbar-right">
+                    ${userEmail ? `
+                        <div class="admin-user-badge" style="display: none; @media(min-width: 900px){ display: inline-flex; }">
+                            <span>${userEmail}</span>
+                        </div>
+                    ` : ''}
+
                     <button type="button" class="admin-topbar-btn" id="editor-toggle-meta-btn" title="Toggle Metadata Details">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="3"></circle>
@@ -61,6 +68,15 @@ export function renderAdminEditorView(data: EditorInitialData): string {
                             <span>Live Page</span>
                         </a>
                     ` : ''}
+
+                    <button type="button" class="admin-logout-btn" id="admin-logout-btn" title="Sign Out of Admin Portal">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span>Log Out</span>
+                    </button>
 
                     <button type="button" class="admin-action-btn primary" id="editor-save-btn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

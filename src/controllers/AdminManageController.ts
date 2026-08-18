@@ -5,6 +5,7 @@
 
 import { renderAdminManageView, renderArticleRows } from '@/views/AdminManageView';
 import { vaultService, ArticleRecord } from '@/services/VaultService';
+import { authService } from '@/services/AuthService';
 
 export class AdminManageController {
     private container: HTMLElement;
@@ -37,7 +38,7 @@ export class AdminManageController {
                 new Set(this.allArticles.map(a => a.category).filter(Boolean))
             ).sort();
 
-            this.container.innerHTML = renderAdminManageView(this.allArticles, categories);
+            this.container.innerHTML = renderAdminManageView(this.allArticles, categories, authService.getUserEmail());
             this.bindEvents();
         } catch (err: any) {
             this.container.innerHTML = `
@@ -157,6 +158,17 @@ export class AdminManageController {
 
             confirmBtn.addEventListener('click', handleConfirm);
             this.cleanups.push(() => confirmBtn.removeEventListener('click', handleConfirm));
+        }
+
+        // Logout Button
+        const logoutBtn = this.container.querySelector<HTMLButtonElement>('#admin-logout-btn');
+        if (logoutBtn) {
+            const handleLogout = async () => {
+                await authService.signOut();
+                window.location.hash = '#admin';
+            };
+            logoutBtn.addEventListener('click', handleLogout);
+            this.cleanups.push(() => logoutBtn.removeEventListener('click', handleLogout));
         }
     }
 

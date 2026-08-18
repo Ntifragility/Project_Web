@@ -4,9 +4,11 @@
  */
 
 import { renderAdminDashboardHub, renderAdminUploadView } from '@/views/AdminView';
+import { renderAdminLoginView } from '@/views/AdminLoginView';
 import { AdminManageController } from './AdminManageController';
 import { AdminEditorController } from './AdminEditorController';
 import { vaultService, ArticleRecord } from '@/services/VaultService';
+import { authService } from '@/services/AuthService';
 import { isSupabaseConfigured } from '@/services/SupabaseClient';
 
 interface DetectedFile {
@@ -32,7 +34,16 @@ export class AdminController {
     public async render(subRoute: string = ''): Promise<void> {
         this.destroy();
 
-        // Route dispatcher
+        // Check Admin Authentication Guard
+        const isAuthenticated = await authService.isAuthenticated();
+
+        if (!isAuthenticated) {
+            this.container.innerHTML = renderAdminLoginView();
+            this.bindLoginEvents(subRoute);
+            return;
+        }
+
+        // Authenticated: Route Dispatcher
         if (subRoute === 'manage' || subRoute.startsWith('manage/')) {
             await this.manageController.render();
             return;
@@ -50,17 +61,71 @@ export class AdminController {
         }
 
         if (subRoute === 'upload') {
-            this.container.innerHTML = renderAdminUploadView();
+            this.container.innerHTML = renderAdminUploadView(authService.getUserEmail());
             this.bindUploadEvents();
+            this.bindLogoutEvent();
             return;
         }
 
         // Default: Admin Dashboard Hub (#admin)
         try {
             const articles = await vaultService.fetchArticles();
-            this.container.innerHTML = renderAdminDashboardHub(articles.length);
+            this.container.innerHTML = renderAdminDashboardHub(articles.length, authService.getUserEmail());
+            this.bindLogoutEvent();
         } catch {
-            this.container.innerHTML = renderAdminDashboardHub(0);
+            this.container.innerHTML = renderAdminDashboardHub(0, authService.getUserEmail());
+            this.bindLogoutEvent();
+        }
+    }
+
+    private bindLoginEvents(intendedSubRoute: string): void {
+        const form = this.container.querySelector<HTMLFormElement>('#admin-login-form');
+        const emailInput = this.container.querySelector<HTMLInputElement>('#admin-email-input');
+        const passwordInput = this.container.querySelector<HTMLInputElement>('#admin-password-input');
+        const submitBtn = this.container.querySelector<HTMLButtonElement>('#admin-login-submit-btn');
+        const btnText = this.container.querySelector<HTMLElement>('#admin-login-btn-text');
+        const errorBox = this.container.querySelector<HTMLElement>('#admin-login-error');
+        const errorText = this.container.querySelector<HTMLElement>('#admin-login-error-text');
+
+        if (!form || !emailInput || !passwordInput) return;
+
+        const handleSubmit = async (e: Event) => {
+            e.preventDefault();
+            if (submitBtn && btnText) {
+                submitBtn.disabled = true;
+                btnText.textContent = 'Verifying Credentials...';
+            }
+            if (errorBox) errorBox.style.display = 'none';
+
+            const res = await authService.signIn(emailInput.value, passwordInput.value);
+
+            if (res.success) {
+                this.render(intendedSubRoute);
+            } else {
+                if (errorBox && errorText) {
+                    errorText.textContent = res.error || 'Invalid email or password.';
+                    errorBox.style.display = 'flex';
+                }
+                if (submitBtn && btnText) {
+                    submitBtn.disabled = false;
+                    btnText.textContent = 'Sign In to Admin Portal';
+                }
+            }
+        };
+
+        form.addEventListener('submit', handleSubmit);
+        this.cleanups.push(() => form.removeEventListener('submit', handleSubmit));
+    }
+
+    private bindLogoutEvent(): void {
+        const logoutBtn = this.container.querySelector<HTMLButtonElement>('#admin-logout-btn');
+        if (logoutBtn) {
+            const handleLogout = async () => {
+                await authService.signOut();
+                this.render('');
+            };
+            logoutBtn.addEventListener('click', handleLogout);
+            this.cleanups.push(() => logoutBtn.removeEventListener('click', handleLogout));
         }
     }
 

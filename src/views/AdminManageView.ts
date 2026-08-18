@@ -5,7 +5,7 @@
 
 import { ArticleRecord } from '@/services/VaultService';
 
-export function renderAdminManageView(articles: ArticleRecord[], categories: string[]): string {
+export function renderAdminManageView(articles: ArticleRecord[], categories: string[], userEmail?: string): string {
     const categoryOptions = categories
         .map(cat => `<option value="${cat}">${cat}</option>`)
         .join('');
@@ -20,12 +20,27 @@ export function renderAdminManageView(articles: ArticleRecord[], categories: str
                             <span class="admin-breadcrumb-sep">/</span>
                             <span class="admin-breadcrumb-current">Articles Manager</span>
                         </div>
-                        <a href="#content" class="admin-close-btn" title="Back to Knowledge Vault">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                        </a>
+                        <div class="admin-header-actions">
+                            ${userEmail ? `
+                                <div class="admin-user-badge">
+                                    <span>${userEmail}</span>
+                                </div>
+                            ` : ''}
+                            <button type="button" class="admin-logout-btn" id="admin-logout-btn" title="Sign Out of Admin Portal">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                                <span>Log Out</span>
+                            </button>
+                            <a href="#content" class="admin-close-btn" title="Back to Knowledge Vault">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </a>
+                        </div>
                     </div>
                     <div class="admin-manage-header-flex">
                         <div>

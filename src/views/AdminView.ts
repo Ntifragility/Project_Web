@@ -8,7 +8,7 @@ import { isSupabaseConfigured } from '@/services/SupabaseClient';
 /**
  * Renders the Central Admin Dashboard Hub (#admin)
  */
-export function renderAdminDashboardHub(articleCount: number = 8): string {
+export function renderAdminDashboardHub(articleCount: number = 8, userEmail?: string): string {
     const isConfigured = isSupabaseConfigured();
 
     return `
@@ -16,16 +16,37 @@ export function renderAdminDashboardHub(articleCount: number = 8): string {
             <div class="admin-panel-card admin-dashboard-card">
                 <div class="admin-panel-header">
                     <div class="admin-header-title-row">
-                        <div class="admin-badge">
-                            <span class="admin-status-dot ${isConfigured ? 'online' : 'offline'}"></span>
-                            <span>${isConfigured ? 'Supabase Connected' : 'Supabase Not Configured'}</span>
+                        <div class="admin-header-left-badges">
+                            <div class="admin-badge">
+                                <span class="admin-status-dot ${isConfigured ? 'online' : 'offline'}"></span>
+                                <span>${isConfigured ? 'Supabase Connected' : 'Supabase Not Configured'}</span>
+                            </div>
+                            ${userEmail ? `
+                                <div class="admin-user-badge">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                    <span>${userEmail}</span>
+                                </div>
+                            ` : ''}
                         </div>
-                        <a href="#content" class="admin-close-btn" title="Back to Knowledge Vault">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                        </a>
+                        <div class="admin-header-actions">
+                            <button type="button" class="admin-logout-btn" id="admin-logout-btn" title="Sign Out of Admin Portal">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                                <span>Log Out</span>
+                            </button>
+                            <a href="#content" class="admin-close-btn" title="Back to Knowledge Vault">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </a>
+                        </div>
                     </div>
                     <h2 class="admin-title">Vault Admin Hub</h2>
                     <p class="admin-subtitle">
@@ -117,7 +138,7 @@ export function renderAdminDashboardHub(articleCount: number = 8): string {
 /**
  * Renders the Vault Folder Upload Dropzone (#admin/upload)
  */
-export function renderAdminUploadView(): string {
+export function renderAdminUploadView(userEmail?: string): string {
     const isConfigured = isSupabaseConfigured();
 
     return `
@@ -130,12 +151,27 @@ export function renderAdminUploadView(): string {
                             <span class="admin-breadcrumb-sep">/</span>
                             <span class="admin-breadcrumb-current">Vault Synchronizer</span>
                         </div>
-                        <a href="#admin" class="admin-close-btn" title="Back to Admin Hub">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                        </a>
+                        <div class="admin-header-actions">
+                            ${userEmail ? `
+                                <div class="admin-user-badge">
+                                    <span>${userEmail}</span>
+                                </div>
+                            ` : ''}
+                            <button type="button" class="admin-logout-btn" id="admin-logout-btn" title="Sign Out">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                                <span>Log Out</span>
+                            </button>
+                            <a href="#admin" class="admin-close-btn" title="Back to Admin Hub">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </a>
+                        </div>
                     </div>
                     <h2 class="admin-title">Vault Cloud Synchronizer</h2>
                     <p class="admin-subtitle">

@@ -1,11 +1,7 @@
-/**
- * @file AdminEditorController.ts
- * @description Controller managing split-pane Markdown Editor, live KaTeX/code preview, image uploads, and cloud persistence.
- */
-
 import { renderAdminEditorView } from '@/views/AdminEditorView';
 import { vaultService, ArticleRecord } from '@/services/VaultService';
 import { markdownParsing } from '@/services/MarkdownParsing';
+import { authService } from '@/services/AuthService';
 import { Chart, registerables } from 'chart.js';
 import { PlotMathEngine } from '@/services/PlotMathEngine';
 
@@ -97,7 +93,8 @@ ylabel: "Efficiency"
                 isNew: this.isNew,
                 article: this.currentArticle,
                 rawMarkdown: this.rawMarkdown,
-                categories
+                categories,
+                userEmail: authService.getUserEmail()
             });
 
             this.bindEvents();
@@ -259,6 +256,17 @@ ylabel: "Efficiency"
             const handleSave = () => this.saveArticle();
             saveBtn.addEventListener('click', handleSave);
             this.cleanups.push(() => saveBtn.removeEventListener('click', handleSave));
+        }
+
+        // Logout Button
+        const logoutBtn = this.container.querySelector<HTMLButtonElement>('#admin-logout-btn');
+        if (logoutBtn) {
+            const handleLogout = async () => {
+                await authService.signOut();
+                window.location.hash = '#admin';
+            };
+            logoutBtn.addEventListener('click', handleLogout);
+            this.cleanups.push(() => logoutBtn.removeEventListener('click', handleLogout));
         }
     }
 
