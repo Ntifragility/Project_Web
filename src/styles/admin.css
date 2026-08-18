@@ -1091,41 +1091,30 @@
     border-radius: 16px;
     max-width: 360px;
     width: 100%;
-    padding: 2.25rem 2rem;
+    padding: 2.5rem 2rem 2.25rem;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    position: relative;
 }
 
-.admin-minimal-header {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.admin-minimal-header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.admin-minimal-tag {
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: #4d99ff;
-}
-
-.admin-minimal-close {
-    color: rgba(255, 255, 255, 0.4);
+.admin-minimal-close-absolute {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    color: rgba(255, 255, 255, 0.35);
     transition: color 0.2s ease;
     display: flex;
     align-items: center;
 }
 
-.admin-minimal-close:hover {
+.admin-minimal-close-absolute:hover {
     color: #ffffff;
+}
+
+.admin-minimal-header {
+    text-align: center;
 }
 
 .admin-minimal-title {
@@ -1133,6 +1122,7 @@
     font-weight: 700;
     color: #ffffff;
     margin: 0;
+    text-align: center;
     letter-spacing: -0.02em;
 }
 

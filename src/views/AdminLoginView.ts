@@ -7,16 +7,13 @@ export function renderAdminLoginView(errorMessage?: string): string {
     return `
         <div class="admin-view-wrapper">
             <div class="admin-minimal-login-card">
+                <a href="#content" class="admin-minimal-close-absolute" title="Return to Knowledge Vault">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </a>
                 <div class="admin-minimal-header">
-                    <div class="admin-minimal-header-top">
-                        <span class="admin-minimal-tag">ADMIN</span>
-                        <a href="#content" class="admin-minimal-close" title="Return to Knowledge Vault">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                        </a>
-                    </div>
                     <h2 class="admin-minimal-title">Sign In</h2>
                 </div>
 
