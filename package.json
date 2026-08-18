@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "scan": "npx tsx scripts/scan-vault.ts",
+    "sync:db": "npx tsx scripts/sync-to-supabase.ts",
     "dev": "npm run scan && vite",
     "build": "npm run scan && tsc && vite build",
     "preview": "vite preview",
