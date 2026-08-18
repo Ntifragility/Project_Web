@@ -5,10 +5,12 @@
 import * as THREE from 'three';
 
 // =========================================================================
-// 🎛️ SINGLE CONTROL FOR SUNLIGHT / EARTH SHINE:
-// Change this single number to adjust the brightness on Earth.
-// (Default: 1.2. Try 0.8, 1.0, 1.5, 2.0. Will NOT shrink the illuminated area!)
+// 🎛️ SINGLE CONTROLS FOR SUN & LIGHTING:
+// 1. Brightness on Earth (Default: 1.2):
 export const EARTH_SUNLIGHT_INTENSITY = 1.2;
+
+// 2. Sun Visual Size / Scale (Resized to 0.5X -> 1.75):
+export const SUN_SCALE = 1.75;
 // =========================================================================
 
 export interface RealisticSunInstance {
@@ -20,9 +22,8 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
     const sunGroup = new THREE.Group();
     sunGroup.position.copy(position);
 
-    // Scaling factor for distant positioning
-    const SCALE = 3.5;
-    sunGroup.scale.set(SCALE, SCALE, SCALE);
+    // Scaling factor for distant positioning (0.5X scale)
+    sunGroup.scale.set(SUN_SCALE, SUN_SCALE, SUN_SCALE);
 
     // ─── Sun Surface Shaders ─────────────────────────────────────────────
     const SUN_SURFACE_VERTEX = `

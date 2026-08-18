@@ -13,13 +13,13 @@ export const EARTH_MODE: EarthMode = 'day';
 // ⛰️ SURFACE RUGGEDNESS (Topography 3D Relief Depth):
 // Increase this number for more pronounced mountains, ridges, and valleys.
 // (Default was 0.05. Try 0.15, 0.20, 0.28 to dial in the ruggedness!)
-export const EARTH_RUGGEDNESS = 0.20;
+export const EARTH_RUGGEDNESS = 0.05;
 // =========================================================================
 
 const TEXTURE_PRESETS: Record<EarthMode, string> = {
     night: 'https://unpkg.com/three-globe/example/img/earth-night.jpg',
-    dark:  'https://unpkg.com/three-globe/example/img/earth-dark.jpg',
-    day:   'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg',
+    dark: 'https://unpkg.com/three-globe/example/img/earth-dark.jpg',
+    day: 'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg',
 };
 
 export function createEarth(scene: THREE.Group, loadingManager?: THREE.LoadingManager) {
