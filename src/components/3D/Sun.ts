@@ -14,12 +14,12 @@ export const SUN_SCALE = 1.75;
 export const EARTH_SUNLIGHT_INTENSITY = 1.2;
 
 // 3. 👑 CROWN WIDTH & GLOW (The glowing outer crown/corona around the sun):
-export const CROWN_WIDTH = 2.0;              // Thickness/reach of the outer glowing crown (Try 1.3 for tight, 2.5 for wide, 4.0 for massive)
+export const CROWN_WIDTH = 1.4;              // Thickness/reach of the outer glowing crown (Try 1.3 for tight, 2.5 for wide, 4.0 for massive)
 export const CROWN_OPACITY = 0.85;           // Brightness of the crown glow (Try 0.4 to 1.5)
 
 // 4. 🌟 4 PUNTAS (Star flare points):
-export const FLARE_4_PUNTAS_SIZE = 14.0;     // Total length/size of the 4 puntas (Try 8.0 to 22.0)
-export const FLARE_4_PUNTAS_BEAM_WIDTH = 25.0;// Width of each punta beam at base (Try 5.0 to 50.0)
+export const FLARE_4_PUNTAS_SIZE = 6.0;     // Total length/size of the 4 puntas (Try 8.0 to 22.0)
+export const FLARE_4_PUNTAS_BEAM_WIDTH = 35.0;// Width of each punta beam at base (Try 5.0 to 50.0)
 export const FLARE_4_PUNTAS_OPACITY = 0.70;  // Glow of the 4 puntas (Try 0.3 to 1.0)
 export const FLARE_4_PUNTAS_COLOR = 0xff9922;// Color of the 4 puntas (e.g. 0xff8800, 0xffaa33)
 // =========================================================================
