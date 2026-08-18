@@ -126,11 +126,9 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
       precision highp float;
       varying vec3 vNormal;
       varying vec3 vViewDir;
-      varying float vDist;
       uniform vec3 uColor;
       uniform float uOpacity;
       uniform float uTime;
-      uniform float uRadius;
 
       float noise(vec2 p) {
         return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453);
@@ -138,15 +136,14 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
 
       void main() {
         float fresnel = 1.0 - abs(dot(vNormal, vViewDir));
-        fresnel = pow(fresnel, 2.0);
-        float radial = 1.0 - smoothstep(0.0, uRadius, vDist);
+        fresnel = pow(fresnel, 1.5);
         float t = uTime * 0.2;
         float coronaNoise = noise(vNormal.xy*3.0+t)*0.5 +
                            noise(vNormal.xy*7.0-t*0.5)*0.3 +
                            noise(vNormal.xy*15.0+t*0.3)*0.2;
         float corona = pow(fresnel, 1.5) * (0.8 + coronaNoise*0.4);
-        float alpha = corona * uOpacity * radial;
-        gl_FragColor = vec4(uColor * (1.0+fresnel), alpha);
+        float alpha = corona * uOpacity;
+        gl_FragColor = vec4(uColor * (1.2 + fresnel), alpha);
       }
     `;
 
@@ -235,21 +232,20 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
     scene.add(sunLight);
     scene.add(sunLight.target);
 
-    // Corona layers
+    // Corona crown layers (4 nested additive shells)
     const coronaConfigs = [
-        { r: 1.35, color: 0xffdd88, op: 0.4, speed: 0.15 },
-        { r: 1.65, color: 0xffaa44, op: 0.25, speed: 0.10 },
-        { r: 2.1, color: 0xff6600, op: 0.12, speed: 0.08 },
-        { r: 2.8, color: 0xff3300, op: 0.06, speed: 0.05 },
+        { r: 1.35, color: 0xffdd88, op: 0.60, speed: 0.15 },
+        { r: 1.65, color: 0xffaa44, op: 0.45, speed: 0.10 },
+        { r: 2.10, color: 0xff6600, op: 0.30, speed: 0.08 },
+        { r: 2.80, color: 0xff3300, op: 0.15, speed: 0.05 },
     ];
-    const coronaUniforms: Array<{ uniforms: { uTime: { value: number }; uColor: { value: THREE.Color }; uOpacity: { value: number }; uRadius: { value: number } }; speed: number }> = [];
+    const coronaUniforms: Array<{ uniforms: { uTime: { value: number }; uColor: { value: THREE.Color }; uOpacity: { value: number } }; speed: number }> = [];
 
     coronaConfigs.forEach(cfg => {
         const u = {
             uTime: { value: 0 },
             uColor: { value: new THREE.Color(cfg.color) },
             uOpacity: { value: cfg.op },
-            uRadius: { value: cfg.r * 2 },
         };
         coronaUniforms.push({ uniforms: u, speed: cfg.speed });
         const mat = new THREE.ShaderMaterial({
