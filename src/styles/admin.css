@@ -1081,65 +1081,154 @@
 }
 
 /* =========================================================================
-   7. Admin Login & Authentication Styles
+   7. Admin Minimalist Login & Authentication Styles
    ========================================================================= */
-.admin-login-card {
-    max-width: 440px;
-    padding: 3rem 2.25rem;
+.admin-minimal-login-card {
+    background: rgba(16, 18, 24, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    max-width: 360px;
+    width: 100%;
+    padding: 2.25rem 2rem;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
-.admin-login-icon-box {
-    width: 68px;
-    height: 68px;
-    margin: 0.5rem auto 0;
-    border-radius: 18px;
-    background: rgba(77, 153, 255, 0.12);
-    border: 1px solid rgba(77, 153, 255, 0.3);
+.admin-minimal-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.admin-minimal-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-minimal-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #4d99ff;
+}
+
+.admin-minimal-close {
+    color: rgba(255, 255, 255, 0.4);
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.admin-minimal-close:hover {
+    color: #ffffff;
+}
+
+.admin-minimal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.admin-minimal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+}
+
+.admin-minimal-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.admin-minimal-field label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.admin-minimal-input {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 0.9rem;
+    outline: none;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.admin-minimal-input:focus {
+    border-color: #4d99ff;
+    background: rgba(255, 255, 255, 0.07);
+    box-shadow: 0 0 0 2px rgba(77, 153, 255, 0.15);
+}
+
+.admin-minimal-input::placeholder {
+    color: rgba(255, 255, 255, 0.2);
+}
+
+.admin-minimal-btn {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    margin-top: 0.4rem;
+    background: #4d99ff;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 8px 24px rgba(77, 153, 255, 0.2);
 }
 
-.admin-login-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    margin-top: 0.5rem;
+.admin-minimal-btn:hover:not(:disabled) {
+    background: #66a8ff;
+    transform: translateY(-1px);
 }
 
-.admin-input-icon-wrap {
-    position: relative;
-    width: 100%;
+.admin-minimal-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
-.admin-field-icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: rgba(255, 255, 255, 0.4);
-    pointer-events: none;
-}
-
-.admin-input.with-icon {
-    padding-left: 2.4rem;
-}
-
-.admin-action-btn.full-width {
-    width: 100%;
-    margin-top: 0.5rem;
-}
-
-.admin-alert-banner.error {
-    background: rgba(239, 68, 68, 0.12);
-    border-color: rgba(239, 68, 68, 0.4);
+.admin-minimal-error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    padding: 0.65rem 0.85rem;
     color: #fca5a5;
+    font-size: 0.82rem;
+    line-height: 1.4;
 }
 
-.admin-alert-banner.error .alert-icon {
-    color: #ef4444;
-    font-weight: 700;
+.admin-minimal-footer {
+    text-align: center;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.admin-minimal-back-link {
+    color: rgba(255, 255, 255, 0.45);
+    text-decoration: none;
+    font-size: 0.8rem;
+    transition: color 0.2s ease;
+}
+
+.admin-minimal-back-link:hover {
+    color: #4d99ff;
 }
 
 .admin-header-left-badges {
