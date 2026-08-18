@@ -1,6 +1,6 @@
 /**
  * @file Sun.ts
- * @description Brutal Sun with 4-point star crown (4 puntas), surface noise, and corona layers.
+ * @description Brutal Sun with customizable 4-point star crown (4 puntas), surface noise, and corona layers.
  */
 import * as THREE from 'three';
 
@@ -14,10 +14,13 @@ export const SUN_SCALE = 1.75;
 export const EARTH_SUNLIGHT_INTENSITY = 1.2;
 
 // 3. 🌟 4-Point Star Crown (4 Puntas) Controls:
-export const CROWN_4_PUNTAS_SIZE = 14.0;      // Total size of the 4-point star (Try 10.0 to 20.0)
-export const CROWN_4_PUNTAS_WIDTH = 4.5;     // Thickness of each of the 4 rays (Try 2.0 to 8.0)
-export const CROWN_4_PUNTAS_OPACITY = 0.65;  // Brightness/glow of the 4 rays (Try 0.3 to 1.0)
+export const CROWN_4_PUNTAS_SIZE = 14.0;      // Total size of the star (Try 8.0 to 22.0)
+export const CROWN_4_PUNTAS_WIDTH = 25.0;     // Beam thickness/width at base (Try 5.0 to 60.0)
+export const CROWN_4_PUNTAS_OPACITY = 0.70;  // Glow opacity of the 4 rays (Try 0.3 to 1.0)
 export const CROWN_4_PUNTAS_COLOR = 0xff9922;// Color of the 4 rays (e.g. 0xff8800, 0xffaa33)
+
+// 4. ⭕ Circular Crown Halo Ring Width around Sun:
+export const CROWN_HALO_WIDTH = 1.65;         // Outer radius of circular crown (Try 1.3 to 2.2)
 // =========================================================================
 
 export interface RealisticSunInstance {
@@ -161,50 +164,68 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
 
         const center = size / 2;
 
-        // Central Radial Glow
+        // Central Radial Crown Glow
         const gradient = ctx.createRadialGradient(center, center, 0, center, center, center);
-        gradient.addColorStop(0.0, 'rgba(255,255,240,1.0)');
-        gradient.addColorStop(0.12, 'rgba(255,220,100,0.8)');
-        gradient.addColorStop(0.30, 'rgba(255,150,40,0.35)');
-        gradient.addColorStop(0.60, 'rgba(255,80,20,0.08)');
+        gradient.addColorStop(0.0, 'rgba(255,255,245,1.0)');
+        gradient.addColorStop(0.12, 'rgba(255,210,80,0.85)');
+        gradient.addColorStop(0.32, 'rgba(255,140,30,0.40)');
+        gradient.addColorStop(0.65, 'rgba(255,70,15,0.10)');
         gradient.addColorStop(1.0, 'rgba(0,0,0,0)');
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, size, size);
 
         ctx.globalCompositeOperation = 'screen';
 
-        function drawRay(angle: number, len: number, width: number, alpha: number) {
+        // Helper function to draw tapered 4-point diamond star spikes
+        function drawTaperedSpike(angle: number, length: number, baseWidth: number, alpha: number) {
             if (!ctx) return;
-            const x = center + Math.cos(angle) * len;
-            const y = center + Math.sin(angle) * len;
-            const rayGrad = ctx.createLinearGradient(center, center, x, y);
-            rayGrad.addColorStop(0.0, `rgba(255,255,240,${alpha})`);
-            rayGrad.addColorStop(0.25, `rgba(255,200,80,${alpha * 0.8})`);
-            rayGrad.addColorStop(0.65, `rgba(255,110,20,${alpha * 0.35})`);
-            rayGrad.addColorStop(1.0, 'rgba(255,50,10,0)');
-            ctx.strokeStyle = rayGrad;
-            ctx.lineWidth = width;
+            ctx.save();
+            ctx.translate(center, center);
+            ctx.rotate(angle);
+
+            // Tapered diamond polygon
             ctx.beginPath();
-            ctx.moveTo(center, center);
-            ctx.lineTo(x, y);
+            ctx.moveTo(0, -baseWidth / 2);
+            ctx.lineTo(length, 0);
+            ctx.lineTo(0, baseWidth / 2);
+            ctx.lineTo(-baseWidth * 0.3, 0);
+            ctx.closePath();
+
+            const rayGrad = ctx.createLinearGradient(0, 0, length, 0);
+            rayGrad.addColorStop(0.0, `rgba(255,255,240,${alpha})`);
+            rayGrad.addColorStop(0.20, `rgba(255,190,60,${alpha * 0.85})`);
+            rayGrad.addColorStop(0.60, `rgba(255,100,20,${alpha * 0.40})`);
+            rayGrad.addColorStop(1.0, 'rgba(255,40,10,0)');
+            ctx.fillStyle = rayGrad;
+            ctx.fill();
+
+            // Core bright thin center streak
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(length * 0.95, 0);
+            ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.9})`;
+            ctx.lineWidth = Math.max(1, baseWidth * 0.12);
             ctx.stroke();
+
+            ctx.restore();
         }
 
-        // 🌟 4 Dominant Points (4 Puntas at 0°, 90°, 180°, 270°)
+        // 🌟 Draw the 4 Dominant Points (4 Puntas at 0°, 90°, 180°, 270°)
         const dominantAngles = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
+        const spikeLength = center * 0.95;
+
         dominantAngles.forEach((angle) => {
-            const len = center * 0.96;
-            // Primary thick core ray
-            drawRay(angle, len, CROWN_4_PUNTAS_WIDTH, 0.95);
-            // Softer wider halo ray
-            drawRay(angle, len * 0.85, CROWN_4_PUNTAS_WIDTH * 2.2, 0.40);
+            // Main wide tapered spike (controlled by CROWN_4_PUNTAS_WIDTH)
+            drawTaperedSpike(angle, spikeLength, CROWN_4_PUNTAS_WIDTH, 0.95);
+            // Softer outer glow ray
+            drawTaperedSpike(angle, spikeLength * 0.8, CROWN_4_PUNTAS_WIDTH * 2.0, 0.40);
         });
 
-        // Subtle secondary micro-rays for natural texture
+        // Subtle secondary micro-rays
         for (let i = 0; i < 16; i++) {
             const angle = (i / 16) * Math.PI * 2 + (Math.random() - 0.5) * 0.1;
-            const len = center * (0.2 + Math.random() * 0.35);
-            drawRay(angle, len, 1.2, 0.2);
+            const len = center * (0.25 + Math.random() * 0.35);
+            drawTaperedSpike(angle, len, 4.0, 0.25);
         }
 
         const texture = new THREE.CanvasTexture(canvas);
@@ -239,10 +260,10 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
 
     // 4 Corona shells
     const coronaConfigs = [
-        { r: 1.35, color: 0xffdd88, op: 0.60, speed: 0.15 },
-        { r: 1.65, color: 0xffaa44, op: 0.45, speed: 0.10 },
-        { r: 2.10, color: 0xff6600, op: 0.30, speed: 0.08 },
-        { r: 2.80, color: 0xff3300, op: 0.15, speed: 0.05 },
+        { r: 1.30, color: 0xffdd88, op: 0.60, speed: 0.15 },
+        { r: CROWN_HALO_WIDTH, color: 0xffaa44, op: 0.45, speed: 0.10 },
+        { r: CROWN_HALO_WIDTH * 1.25, color: 0xff6600, op: 0.30, speed: 0.08 },
+        { r: CROWN_HALO_WIDTH * 1.65, color: 0xff3300, op: 0.15, speed: 0.05 },
     ];
     const coronaUniforms: Array<{ uniforms: { uTime: { value: number }; uColor: { value: THREE.Color }; uOpacity: { value: number } }; speed: number }> = [];
 
