@@ -21,7 +21,7 @@ export function renderNavigation(data: NavViewData): string {
 
     return `
         <nav class="main-nav">
-            <div class="logo">${data.logo}</div>
+            <a href="#hero" class="logo" style="text-decoration: none; color: inherit; cursor: pointer;">${data.logo}</a>
             <ul class="nav-links-desktop">${desktopLinks}</ul>
             <button id="hamburger-btn" class="hamburger-btn" aria-label="Toggle menu">
                 <span></span><span></span><span></span>

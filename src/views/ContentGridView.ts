@@ -110,14 +110,24 @@ export function renderSubjectsView(subjects: SubjectItem[]): string {
                     <h2 class="grid-section-title">Knowledge Vault</h2>
                     <p class="grid-section-subtitle">Select a subject to explore articles and technical notes</p>
                 </div>
-                <a href="#admin" class="vault-sync-link" title="Upload folder to cloud storage">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="17 8 12 3 7 8"></polyline>
-                        <line x1="12" y1="3" x2="12" y2="15"></line>
-                    </svg>
-                    <span>Cloud Upload</span>
-                </a>
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    <a href="#hero" class="vault-sync-link" title="Return to interactive Planet Earth">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M2 12h20"></path>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                        </svg>
+                        <span>Planet Earth</span>
+                    </a>
+                    <a href="#admin" class="vault-sync-link" title="Admin Hub & Cloud Sync">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <span>Cloud Hub</span>
+                    </a>
+                </div>
             </div>
         </div>
         <div id="subjects-grid" class="tech-cards-grid">

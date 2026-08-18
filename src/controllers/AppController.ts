@@ -196,29 +196,40 @@ export class AppController {
             // Anchor scroll jumping logic
             if (hash && hash !== '#') {
                 const targetId = hash.substring(1).split('&')[0];
-                const targetElement = document.getElementById(targetId);
-                if (targetElement) {
-                    if (wasDetailView && targetId === 'content') {
-                        // Instantly snap to the knowledge vault without scrolling through intermediate sections
-                        document.documentElement.classList.add('no-smooth-scroll');
-                        document.body.classList.add('no-smooth-scroll');
-                        
-                        targetElement.scrollIntoView({ behavior: 'auto' });
-                        
-                        setTimeout(() => {
-                            document.documentElement.classList.remove('no-smooth-scroll');
-                            document.body.classList.remove('no-smooth-scroll');
-                        }, 50);
-                    } else {
-                        setTimeout(() => {
-                            targetElement.scrollIntoView({ behavior: 'smooth' });
-                        }, 100);
+                if (targetId === 'hero') {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    if (this.canvasContainer) {
+                        this.canvasContainer.classList.remove('fade-out');
+                        this.canvasContainer.style.pointerEvents = 'auto';
+                    }
+                } else {
+                    const targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                        if (wasDetailView && targetId === 'content') {
+                            // Instantly snap to the knowledge vault without scrolling through intermediate sections
+                            document.documentElement.classList.add('no-smooth-scroll');
+                            document.body.classList.add('no-smooth-scroll');
+                            
+                            targetElement.scrollIntoView({ behavior: 'auto' });
+                            
+                            setTimeout(() => {
+                                document.documentElement.classList.remove('no-smooth-scroll');
+                                document.body.classList.remove('no-smooth-scroll');
+                            }, 50);
+                        } else {
+                            setTimeout(() => {
+                                targetElement.scrollIntoView({ behavior: 'smooth' });
+                            }, 100);
+                        }
                     }
                 }
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
 
             if (this.canvasContainer && window.scrollY < 100) {
                 this.canvasContainer.classList.remove('fade-out');
+                this.canvasContainer.style.pointerEvents = 'auto';
             }
         }
     }

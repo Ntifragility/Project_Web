@@ -11,8 +11,7 @@ export interface NavLink {
 export const navigationData = {
     logo: 'Marco',
     links: [
-        // { label: 'About', href: '#about' },
-        // { label: 'Tools', href: '#tools' },
+        { label: 'Start', href: '#hero' },
         { label: 'Content', href: '#content' }
     ] as NavLink[]
 };
