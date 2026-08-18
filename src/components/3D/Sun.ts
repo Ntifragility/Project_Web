@@ -1,28 +1,35 @@
 /**
  * @file Sun.ts
- * @description Brutal Sun implementation matching the user's specification.
+ * @description Brutal Sun with 4-point star crown (4 puntas), surface noise, and corona layers.
  */
 import * as THREE from 'three';
 
 // =========================================================================
-// 🎛️ SINGLE CONTROLS FOR SUN & LIGHTING:
-// 1. Brightness on Earth (Default: 1.2):
+// 🎛️ CONTROLS FOR SUN & 4-POINT STAR CROWN (4 PUNTAS):
+//
+// 1. Sun scale/size:
+export const SUN_SCALE = 1.75;
+
+// 2. Sunlight illuminating Earth:
 export const EARTH_SUNLIGHT_INTENSITY = 1.2;
 
-// 2. Sun Visual Size / Scale (Resized to 0.5X -> 1.75):
-export const SUN_SCALE = 1.75;
+// 3. 🌟 4-Point Star Crown (4 Puntas) Controls:
+export const CROWN_4_PUNTAS_SIZE = 14.0;      // Total size of the 4-point star (Try 10.0 to 20.0)
+export const CROWN_4_PUNTAS_WIDTH = 4.5;     // Thickness of each of the 4 rays (Try 2.0 to 8.0)
+export const CROWN_4_PUNTAS_OPACITY = 0.65;  // Brightness/glow of the 4 rays (Try 0.3 to 1.0)
+export const CROWN_4_PUNTAS_COLOR = 0xff9922;// Color of the 4 rays (e.g. 0xff8800, 0xffaa33)
 // =========================================================================
 
 export interface RealisticSunInstance {
     group: THREE.Group;
-    update: (time: number) => void;
+    update: (time: number, camera?: THREE.Camera) => void;
 }
 
 export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3): RealisticSunInstance {
     const sunGroup = new THREE.Group();
     sunGroup.position.copy(position);
 
-    // Scaling factor for distant positioning (0.5X scale)
+    // Scaling factor for distant positioning
     sunGroup.scale.set(SUN_SCALE, SUN_SCALE, SUN_SCALE);
 
     // ─── Sun Surface Shaders ─────────────────────────────────────────────
@@ -99,9 +106,8 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
         color *= limbDarkening;
         color *= (1.2 + n1*0.3);
 
-        // Explicit rim color band so the edge doesn't wash out to white.
-        float rimBand = smoothstep(0.35, 1.0, fresnel);
-        color = mix(color, uColorRim, rimBand * 0.65);
+        float rimBand = smoothstep(0.25, 1.0, fresnel);
+        color = mix(color, uColorRim, rimBand * 0.75);
 
         color = pow(color, vec3(0.9));
         gl_FragColor = vec4(color, 1.0);
@@ -112,12 +118,10 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
     const CORONA_VERTEX = `
       varying vec3 vNormal;
       varying vec3 vViewDir;
-      varying float vDist;
       void main() {
         vNormal = normalize(normalMatrix * normal);
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
         vViewDir = normalize(-mvPosition.xyz);
-        vDist = length(mvPosition.xyz);
         gl_Position = projectionMatrix * mvPosition;
       }
     `;
@@ -147,8 +151,8 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
       }
     `;
 
-    // ─── Procedural Flare Texture ────────────────────────────
-    function createProceduralFlareTexture(): THREE.CanvasTexture {
+    // ─── 4-Point Star Crown (4 Puntas) Texture Generator ─────────────────
+    function create4PointStarTexture(): THREE.CanvasTexture {
         const size = 1024;
         const canvas = document.createElement('canvas');
         canvas.width = size; canvas.height = size;
@@ -157,11 +161,12 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
 
         const center = size / 2;
 
+        // Central Radial Glow
         const gradient = ctx.createRadialGradient(center, center, 0, center, center, center);
         gradient.addColorStop(0.0, 'rgba(255,255,240,1.0)');
-        gradient.addColorStop(0.1, 'rgba(255,240,200,0.8)');
-        gradient.addColorStop(0.3, 'rgba(255,200,100,0.35)');
-        gradient.addColorStop(0.6, 'rgba(255,100,50,0.08)');
+        gradient.addColorStop(0.12, 'rgba(255,220,100,0.8)');
+        gradient.addColorStop(0.30, 'rgba(255,150,40,0.35)');
+        gradient.addColorStop(0.60, 'rgba(255,80,20,0.08)');
         gradient.addColorStop(1.0, 'rgba(0,0,0,0)');
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, size, size);
@@ -173,9 +178,10 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
             const x = center + Math.cos(angle) * len;
             const y = center + Math.sin(angle) * len;
             const rayGrad = ctx.createLinearGradient(center, center, x, y);
-            rayGrad.addColorStop(0.0, `rgba(255,255,230,${alpha})`);
-            rayGrad.addColorStop(0.4, `rgba(255,190,80,${alpha * 0.35})`);
-            rayGrad.addColorStop(1.0, 'rgba(255,100,30,0)');
+            rayGrad.addColorStop(0.0, `rgba(255,255,240,${alpha})`);
+            rayGrad.addColorStop(0.25, `rgba(255,200,80,${alpha * 0.8})`);
+            rayGrad.addColorStop(0.65, `rgba(255,110,20,${alpha * 0.35})`);
+            rayGrad.addColorStop(1.0, 'rgba(255,50,10,0)');
             ctx.strokeStyle = rayGrad;
             ctx.lineWidth = width;
             ctx.beginPath();
@@ -184,22 +190,21 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
             ctx.stroke();
         }
 
-        // 4 dominant spikes at roughly 90° apart, jittered
+        // 🌟 4 Dominant Points (4 Puntas at 0°, 90°, 180°, 270°)
         const dominantAngles = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
-        dominantAngles.forEach((baseAngle) => {
-            const angle = baseAngle + (Math.random() - 0.5) * 0.12;
-            const len = center * (0.85 + Math.random() * 0.15);
-            drawRay(angle, len, 3.0 + Math.random() * 1.5, 0.75);
+        dominantAngles.forEach((angle) => {
+            const len = center * 0.96;
+            // Primary thick core ray
+            drawRay(angle, len, CROWN_4_PUNTAS_WIDTH, 0.95);
+            // Softer wider halo ray
+            drawRay(angle, len * 0.85, CROWN_4_PUNTAS_WIDTH * 2.2, 0.40);
         });
 
-        // Irregular secondary flecks — random count, angle, length, width
-        const secondaryCount = 18 + Math.floor(Math.random() * 10);
-        for (let i = 0; i < secondaryCount; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const len = center * (0.2 + Math.random() * 0.45);
-            const width = 0.5 + Math.random() * 1.3;
-            const alpha = 0.15 + Math.random() * 0.25;
-            drawRay(angle, len, width, alpha);
+        // Subtle secondary micro-rays for natural texture
+        for (let i = 0; i < 16; i++) {
+            const angle = (i / 16) * Math.PI * 2 + (Math.random() - 0.5) * 0.1;
+            const len = center * (0.2 + Math.random() * 0.35);
+            drawRay(angle, len, 1.2, 0.2);
         }
 
         const texture = new THREE.CanvasTexture(canvas);
@@ -225,14 +230,14 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
     const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(1.2, 128, 128), sunMat);
     sunGroup.add(sunMesh);
 
-    // Sunlight illuminating Earth (Directional parallel rays: covers entire 180° hemisphere without distance falloff)
+    // Sunlight illuminating Earth
     const sunLight = new THREE.DirectionalLight(0xfff8f0, EARTH_SUNLIGHT_INTENSITY);
     sunLight.position.copy(position);
     sunLight.target.position.set(0, 0, 0);
     scene.add(sunLight);
     scene.add(sunLight.target);
 
-    // Corona crown layers (4 nested additive shells)
+    // 4 Corona shells
     const coronaConfigs = [
         { r: 1.35, color: 0xffdd88, op: 0.60, speed: 0.15 },
         { r: 1.65, color: 0xffaa44, op: 0.45, speed: 0.10 },
@@ -260,35 +265,39 @@ export function createRealisticSun(scene: THREE.Scene, position: THREE.Vector3):
         sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(cfg.r, 64, 64), mat));
     });
 
-    // Flare billboard
-    const flareTex = createProceduralFlareTexture();
-    const flareMat = new THREE.MeshBasicMaterial({
-        map: flareTex,
+    // 🌟 4-Point Star Crown Billboard (4 Puntas)
+    const starTex = create4PointStarTexture();
+    const starMat = new THREE.MeshBasicMaterial({
+        map: starTex,
         transparent: true,
-        opacity: 0.15,
+        opacity: CROWN_4_PUNTAS_OPACITY,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
-        color: 0xffddaa,
+        color: CROWN_4_PUNTAS_COLOR,
     });
-    const flareMesh = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), flareMat);
-    sunGroup.add(flareMesh);
+    const starMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(CROWN_4_PUNTAS_SIZE, CROWN_4_PUNTAS_SIZE),
+        starMat
+    );
+    sunGroup.add(starMesh);
 
     scene.add(sunGroup);
 
     return {
         group: sunGroup,
-        update: (time: number) => {
+        update: (time: number, camera?: THREE.Camera) => {
             sunUniforms.uTime.value = time;
             coronaUniforms.forEach(c => {
                 c.uniforms.uTime.value = time * c.speed;
             });
 
-            const camera = scene.children.find(child => (child as any).isPerspectiveCamera || (child as any).isCamera) as THREE.Camera | undefined;
+            // Always face camera directly so the 4 puntas are perfectly perpendicular
             if (camera) {
-                flareMesh.quaternion.copy(camera.quaternion);
+                starMesh.lookAt(camera.position);
             }
 
-            flareMat.opacity = 0.12 + Math.sin(time * 0.5) * 0.03;
+            // Gentle pulsating star flare
+            starMat.opacity = CROWN_4_PUNTAS_OPACITY + Math.sin(time * 0.6) * 0.05;
         }
     };
 }

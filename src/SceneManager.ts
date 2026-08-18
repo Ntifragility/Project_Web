@@ -140,7 +140,7 @@ export class SceneManager {
 
         const elapsedTime = this.clock.getElapsedTime();
         if (this.sunInstance) {
-            this.sunInstance.update(elapsedTime);
+            this.sunInstance.update(elapsedTime, this.camera);
         }
 
         this.earth.rotation.y += 0.001;
