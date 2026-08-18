@@ -69,17 +69,21 @@ export class AppController {
         heroWrapper.innerHTML = renderHero(heroData.scrollTargetId);
         this.mainContent.appendChild(heroWrapper.firstElementChild!);
 
-        // Render Intro
+        // Render Intro (Hidden)
         const introWrapper = document.createElement('div');
+        introWrapper.id = 'about-section-wrapper';
+        introWrapper.style.display = 'none';
         introWrapper.innerHTML = renderIntro({
             title: introData.title,
             bio: introData.bio,
             buttons: introData.buttons.map(b => ({ label: b.label, primary: b.primary }))
         });
-        this.mainContent.appendChild(introWrapper.firstElementChild!);
+        this.mainContent.appendChild(introWrapper);
 
-        // Render Tools section via ToolsController
+        // Render Tools section via ToolsController (Hidden)
         const toolsWrapper = document.createElement('div');
+        toolsWrapper.id = 'tools-section-wrapper';
+        toolsWrapper.style.display = 'none';
         this.mainContent.appendChild(toolsWrapper);
         this.toolsController = new ToolsController(toolsWrapper);
         this.toolsController.init();
